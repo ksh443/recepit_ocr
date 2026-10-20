@@ -111,11 +111,11 @@ label.field > input, label.field > select { color: var(--text); font-size: 15px;
 
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .badge.matched, .badge.approved { background: var(--ok-bg); color: var(--ok); }
-.badge.amount_mismatch, .badge.date_mismatch, .badge.no_card { background: var(--warn-bg); color: var(--warn); }
+.badge.amount_mismatch, .badge.date_mismatch, .badge.merchant_mismatch, .badge.time_mismatch, .badge.no_card { background: var(--warn-bg); color: var(--warn); }
 .badge.no_receipt, .badge.pending { background: var(--wait-bg); color: var(--wait); }
 .badge.rejected, .badge.approval-rejected { background: #eff6ff; color: #1d4ed8; }
-.badge.approval-requested { background: #f5f3ff; color: #6d28d9; }
-.badge.approval-reviewing { background: var(--warn-bg); color: var(--warn); }
+.badge.approval-requested, .badge.approval-reviewing { background: var(--warn-bg); color: var(--warn); }
+.badge.approval-todo { background: #f5f3ff; color: #6d28d9; }
 .badge.approval-done { background: var(--ok-bg); color: var(--ok); }
 .badge.need { background: #fef2f2; color: var(--danger); }
 .badge.done { background: var(--primary-weak); color: var(--primary); }
@@ -242,5 +242,27 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
 /* 로그인 */
 .login-page { max-width: 560px; }
 .login-card { margin-top: 24px; }
-.login-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
-.login-people .btn { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; }
+
+/* 메뉴가 많아 중간 폭에서는 메뉴를 다음 줄로 */
+@media (max-width: 1180px) {
+  .topbar-inner { flex-wrap: wrap; row-gap: 6px; }
+  .nav { order: 3; flex-basis: 100%; }
+  .account-select { margin-left: auto; }
+}
+
+/* 마이페이지 내 정보 (보기 전용) */
+.info-list { display: grid; grid-template-columns: 56px 1fr; gap: 8px 12px; margin: 0; }
+.info-list dt { color: var(--muted); font-size: 14px; }
+.info-list dd { margin: 0; font-weight: 600; }
+
+/* 카드 사용내역에서 눌러 들어온 영수증 잠깐 강조 */
+.card.flash { box-shadow: 0 0 0 3px var(--primary); transition: box-shadow 0.4s; }
+
+/* 카드 사용내역 상태 배지: 누를 수 있게 보이도록 */
+.status-link { text-decoration: none; }
+.status-link .badge { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.status-link:hover .badge { filter: brightness(0.95); }
+
+/* 맨 아래 웹사이트 정보 링크 (눈에 띄지 않게) */
+.site-footer { max-width: 1200px; margin: 24px auto 0; padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); text-align: center; font-size: 12px; }
+.site-footer a { color: var(--muted); }

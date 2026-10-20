@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import { api, errMsg } from "./api";
 import { LoadStatus, useLoad } from "./useLoad";
-import { DEMO_PASSWORD, sortOrg } from "@/lib/org";
+import { sortOrg } from "@/lib/org";
 import { personLabel, type OrgMember } from "@/lib/types";
 
 /** 로그인한 사람 (로컬 개발 모드는 "계정 선택"한 사람). 누구든 영수증을 올려 상신하고, 결재선에 있으면 검토·결재한다 */
@@ -19,7 +19,8 @@ const NAV = [
   { href: "/cards", label: "① 카드 사용내역" },
   { href: "/receipts", label: "② 영수증 처리" },
   { href: "/submissions", label: "③ 결재 현황" },
-  { href: "/settings", label: "설정" },
+  { href: "/org", label: "조직도 관리", headOnly: true },
+  { href: "/me", label: "마이페이지", authOnly: true },
 ];
 
 interface Env {
@@ -62,7 +63,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     ? (me?.member ?? null)
     : (org.find((m) => m.id === actorId) ?? org.find((m) => m.id === env?.settings.defaultDrafterId) ?? org[0] ?? null);
 
-  /** 계정 전환: 로그인 모드에서는 그 사람으로 다시 로그인 (시연용 초기 비밀번호) */
+  /** 계정 전환: 로그인 모드에서는 그 사람으로 다시 로그인 (시연용 간편 로그인, 비밀번호 불필요) */
   const chooseActor = async (id: string) => {
     setSwitchError("");
     if (!auth) {
@@ -76,10 +77,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     }
     setSwitching(true);
     try {
-      await api("/api/auth/login", { method: "POST", json: { memberId: id, password: DEMO_PASSWORD } });
+      await api("/api/auth/login", { method: "POST", json: { memberId: id, demo: true } });
       location.reload();
     } catch (e) {
-      setSwitchError(`계정 전환 실패: ${errMsg(e)} (비밀번호를 바꾼 계정은 로그아웃 후 직접 로그인하세요)`);
+      setSwitchError(`계정 전환 실패: ${errMsg(e)}`);
       setSwitching(false);
     }
   };
@@ -96,10 +97,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <Link href="/cards" className="brand">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icons/icon-192.png" alt="" />
-            <span className="hide-sm">영수증 결재 상신</span>
+            <span className="hide-sm">지출원인행위 상신 자동화</span>
           </Link>
           <nav className="nav">
-            {NAV.map((n) => (
+            {NAV.filter((n) => (!n.headOnly || !auth || actor?.head) && (!n.authOnly || auth)).map((n) => (
               <Link key={n.href} href={n.href} className={pathname.startsWith(n.href) ? "active" : ""}>
                 {n.label}
               </Link>
@@ -131,11 +132,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {!env.ai && "AI API 키(GEMINI_API_KEY 또는 ANTHROPIC_API_KEY)가 없어 OCR·적요 자동 작성이 동작하지 않습니다."}
         </div>
       )}
-      <div className="demo-banner">
-        {auth
-          ? "시연용: 모든 계정의 초기 비밀번호는 000000입니다. 상단 \"계정 선택\"으로 로그아웃 없이 다른 사람으로 전환할 수 있습니다."
-          : "로컬 개발 모드: 로그인 없이 \"계정 선택\"으로 사람을 고르며 본인 확인은 하지 않습니다."}
-      </div>
+      {!auth && <div className="demo-banner">로컬 개발 모드: 로그인 없이 &quot;계정 선택&quot;으로 사람을 고르며 본인 확인은 하지 않습니다.</div>}
       {switchError && <div className="alert error page" style={{ marginBottom: 0 }}>{switchError}</div>}
       <main className="page">
         {/* 계정·조직도를 알아야 화면이 동작하므로, 먼저 불러온 뒤 보여 준다 */}
@@ -147,6 +144,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </p>
         )}
       </main>
+      {/* 연결 상태 등은 눈에 띄지 않게 맨 아래에 */}
+      <footer className="site-footer">
+        <Link href="/settings">웹사이트 정보</Link>
+      </footer>
     </ActorCtx.Provider>
     </AuthCtx.Provider>
   );

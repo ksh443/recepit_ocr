@@ -21,12 +21,21 @@ interface CardsRes {
   lastFetchSource: string | null;
 }
 
-const FILTERS: ("all" | CardStatus)[] = ["all", "matched", "amount_mismatch", "date_mismatch", "no_receipt"];
+/** 상태 필터: 금액·날짜·업체·시간 불일치는 "불일치" 하나로 묶는다 (표에는 어떤 불일치인지 그대로 표시) */
+type Filter = "all" | "matched" | "mismatch" | "no_receipt";
+const FILTERS: Filter[] = ["all", "matched", "mismatch", "no_receipt"];
+const FILTER_LABEL: Record<Filter, string> = {
+  all: "전체",
+  matched: STATUS_LABEL.matched,
+  mismatch: "⚠️ 불일치",
+  no_receipt: STATUS_LABEL.no_receipt,
+};
+const filterOf = (st: CardStatus): Filter => (st === "matched" || st === "no_receipt" ? st : "mismatch");
 
 /** A-① 카드 사용내역 */
 export default function CardsPage() {
   const [range, setRange] = useState(thisMonthRange);
-  const [filter, setFilter] = useState<"all" | CardStatus>("all");
+  const [filter, setFilter] = useState<Filter>("all");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ type: "info" | "error" | "warn"; text: string } | null>(null);
   const [showCsv, setShowCsv] = useState(false);
@@ -94,10 +103,10 @@ export default function CardsPage() {
   );
   const counts = useMemo(() => {
     const m: Record<string, number> = { all: inRange.length };
-    for (const c of inRange) m[c.status] = (m[c.status] ?? 0) + 1;
+    for (const c of inRange) m[filterOf(c.status)] = (m[filterOf(c.status)] ?? 0) + 1;
     return m;
   }, [inRange]);
-  const shown = filter === "all" ? inRange : inRange.filter((c) => c.status === filter);
+  const shown = filter === "all" ? inRange : inRange.filter((c) => filterOf(c.status) === filter);
 
   return (
     <>
@@ -148,7 +157,7 @@ export default function CardsPage() {
         <div className="chips">
           {FILTERS.map((f) => (
             <button key={f} className={`chip ${filter === f ? "on" : ""}`} onClick={() => setFilter(f)}>
-              {f === "all" ? "전체" : STATUS_LABEL[f]} {counts[f] ?? 0}
+              {FILTER_LABEL[f]} {counts[f] ?? 0}
             </button>
           ))}
         </div>
@@ -176,9 +185,15 @@ export default function CardsPage() {
             ) : shown.length === 0 ? (
               <tr>
                 <td colSpan={6} className="empty">
-                  {inRange.length === 0
-                    ? `조회 기간(${range.from || "처음"} ~ ${range.to || "오늘"})에 카드 사용내역이 없습니다. 새로고침을 눌러 카드사에서 불러오거나 조회 기간을 바꿔 보세요.`
-                    : "해당 상태의 내역이 없습니다."}
+                  {inRange.length === 0 ? (
+                    <>
+                      조회 기간({range.from || "처음"} ~ {range.to || "오늘"})에 카드 사용내역이 없습니다.
+                      <br />
+                      새로고침을 눌러 카드사에서 불러오거나 조회 기간을 바꿔 보세요.
+                    </>
+                  ) : (
+                    "해당 상태의 내역이 없습니다."
+                  )}
                 </td>
               </tr>
             ) : (
@@ -190,23 +205,35 @@ export default function CardsPage() {
                   <td className="hide-sm">{c.category}</td>
                   <td className="num">{fmtAmount(c.amount, c.currency)}</td>
                   <td>
-                    {c.receiptId ? (
-                      <Link href={`/receipts#r-${c.receiptId}`}>
-                        <StatusBadge status={c.status} />
-                      </Link>
-                    ) : (
+                    {/* 상태를 누르면 영수증 처리로: 연결된 영수증만 보거나(일치·불일치), 이 내역의 영수증을 올린다(미등록) */}
+                    <Link
+                      href={c.receiptId ? `/receipts?receipt=${c.receiptId}` : `/receipts?card=${encodeURIComponent(c.approvalNo)}`}
+                      className="status-link"
+                      title={c.receiptId ? "영수증 보기" : "이 내역의 영수증 올리기"}
+                    >
                       <StatusBadge status={c.status} />
-                    )}
+                    </Link>
                     {/* 영수증이 상신됐으면 결재 상태도 함께. 반려는 영수증 처리로 가서 재상신 */}
                     {c.approval && (
                       <Link
-                        href={c.approval === "rejected" ? `/receipts#r-${c.receiptId}` : `/submissions/${c.submissionId}`}
+                        href={c.approval === "rejected" ? `/receipts?receipt=${c.receiptId}` : `/submissions/${c.submissionId}`}
                         className={`badge approval-${c.approval}`}
                         style={{ marginLeft: 4 }}
                         title={c.approval === "rejected" ? "눌러서 반려 사유 확인 후 재상신" : "결재서 보기"}
                       >
                         {APPROVAL_STATE_LABEL[c.approval]}
                         {c.approval === "rejected" ? " · 재상신 →" : ""}
+                      </Link>
+                    )}
+                    {/* 영수증이 일치하는데 아직 결재 상신 전이면 결재의뢰 */}
+                    {!c.approval && c.receiptId && c.status === "matched" && (
+                      <Link
+                        href={`/receipts?receipt=${c.receiptId}`}
+                        className="badge approval-todo"
+                        style={{ marginLeft: 4 }}
+                        title="눌러서 결재 상신"
+                      >
+                        결재의뢰 →
                       </Link>
                     )}
                   </td>

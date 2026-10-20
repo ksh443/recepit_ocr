@@ -11,7 +11,7 @@ export async function GET() {
     return ok({
       authEnabled: authEnabled(),
       member: await sessionMember(),
-      members: orgChart.map(({ id, rank, name, duty, head, loginId }) => ({ id, rank, name, duty, head, loginId })),
+      members: orgChart.map(({ id, rank, name, duty, head, loginId, email }) => ({ id, rank, name, duty, head, loginId, email })),
     });
   } catch (e) {
     return fail(e);

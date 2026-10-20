@@ -12,15 +12,17 @@ export interface CardTxn {
   importSource?: string | null; // (A) 불러온 방식: 새로고침 / CSV 업로드
 }
 
-export type MatchStatus = "matched" | "amount_mismatch" | "date_mismatch" | "no_card";
+export type MatchStatus = "matched" | "amount_mismatch" | "date_mismatch" | "merchant_mismatch" | "time_mismatch" | "no_card";
 export type CardStatus = MatchStatus | "no_receipt";
 
 export const STATUS_LABEL: Record<CardStatus, string> = {
   matched: "✅ 일치",
   amount_mismatch: "⚠️ 금액 불일치",
   date_mismatch: "⚠️ 날짜 불일치",
+  merchant_mismatch: "⚠️ 업체 불일치",
+  time_mismatch: "⚠️ 시간 불일치",
   no_card: "⚠️ 카드내역 없음",
-  no_receipt: "⏳ 영수증 없음",
+  no_receipt: "⏳ 미등록",
 };
 
 export interface OcrResult {
@@ -83,15 +85,15 @@ export interface Submission {
 /** 카드 사용내역에 함께 보이는 결재 상태 */
 export type ApprovalState = "requested" | "reviewing" | "done" | "rejected";
 export const APPROVAL_STATE_LABEL: Record<ApprovalState, string> = {
-  requested: "결재의뢰",
-  reviewing: "검토중",
+  requested: "진행중",
+  reviewing: "진행중",
   done: "완료",
   rejected: "반려",
 };
 export function approvalState(s: Submission): ApprovalState {
   if (s.status === "rejected") return "rejected";
   if (s.status === "approved") return "done";
-  // 상신 후 아무도 서명하지 않았으면 결재의뢰, 누군가 서명했으면 검토중
+  // 상신 후 아무도 서명하지 않았으면 requested, 누군가 서명했으면 reviewing (화면에는 둘 다 "진행중")
   return lineOf(s).some((st) => st.role !== "drafter" && st.signedAt) ? "reviewing" : "requested";
 }
 
@@ -99,8 +101,13 @@ export function approvalState(s: Submission): ApprovalState {
 /* 조직도·결재선                                                         */
 /* ------------------------------------------------------------------ */
 
-/** 직급 (낮은 순) */
-export const RANKS = ["하사", "중사", "상사", "원사", "준위", "소위", "중위", "대위", "소령", "중령", "대령", "준장", "소장", "중장", "대장"];
+/** 계급 (낮은 순). (진)은 진급 예정자로 같은 계급 바로 아래 */
+export const RANKS = [
+  "이병", "일병", "상병", "병장",
+  "하사", "중사(진)", "중사", "상사(진)", "상사", "원사(진)", "원사", "준위",
+  "소위", "중위(진)", "중위", "대위(진)", "대위", "소령(진)", "소령", "중령(진)", "중령", "대령(진)", "대령",
+  "준장(진)", "준장", "소장(진)", "소장", "중장(진)", "중장", "대장(진)", "대장",
+];
 export const rankOrder = (rank: string) => {
   const i = RANKS.indexOf(rank);
   return i < 0 ? -1 : i;
@@ -113,6 +120,7 @@ export interface OrgMember {
   duty: string; // 직책 (예: 부서장, 재정담당)
   head: boolean; // 부서장 여부 (결재 기본값)
   loginId?: string; // 로그인 아이디 (성 로마자, 예: kwon → kwon@aflc.test). 없으면 저장할 때 붙인다
+  email?: string; // 로그인 이메일. 없으면 아이디@aflc.test
 }
 
 export interface Person {
@@ -162,9 +170,22 @@ export function progressLabel(s: Submission): string {
   return i < 0 ? "결재 완료" : `${ROLE_LABEL[line[i].role]} 대기`;
 }
 
-/** 결재 현황 탭 (상급자 보기는 선택한 계정이 결재선에 든 문서만) */
-export type DocTab = "all" | "todo" | "progress" | "done";
-export const DOC_TAB_LABEL: Record<DocTab, string> = { all: "전체", todo: "처리할 문서", progress: "진행 중", done: "결재 완료" };
+/**
+ * 결재 현황 탭
+ * - 전체: 모든 부서원에게 모든 문서 (진행 중·반려 포함)
+ * - 처리할 문서: 지금 내가 서명할 차례인 문서
+ * - 진행 중: 모든 부서원에게 결재가 끝나지 않은 문서
+ * - 결재 완료: 모든 부서원에게 최종 승인된 문서 (반려 제외)
+ * - 반려: 모든 부서원에게 반려된 문서
+ */
+export type DocTab = "all" | "todo" | "progress" | "done" | "rejected";
+export const DOC_TAB_LABEL: Record<DocTab, string> = {
+  all: "전체",
+  todo: "처리할 문서",
+  progress: "진행 중",
+  done: "결재 완료",
+  rejected: "반려",
+};
 
 /** 이 사람이 결재선(담당·검토·결재·대결자)에 들어 있나 */
 export const inLine = (s: Submission, who: Person) =>
@@ -179,10 +200,10 @@ export function isMyTurn(s: Submission, who: Person): boolean {
 }
 
 export function matchesTab(s: Submission, tab: DocTab, who: Person | null): boolean {
-  if (who && !inLine(s, who)) return false;
   if (tab === "all") return true;
-  if (tab === "done") return s.status !== "pending";
+  if (tab === "done") return s.status === "approved";
   if (tab === "progress") return s.status === "pending";
+  if (tab === "rejected") return s.status === "rejected";
   return who ? isMyTurn(s, who) : s.status === "pending";
 }
 

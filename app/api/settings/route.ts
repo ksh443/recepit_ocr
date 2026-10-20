@@ -37,6 +37,7 @@ export async function PUT(req: Request) {
           duty: (m.duty ?? "").trim(),
           head: Boolean(m.head),
           ...(m.loginId?.trim() ? { loginId: m.loginId.trim().toLowerCase() } : {}),
+          ...(m.email?.trim() ? { email: m.email.trim().toLowerCase() } : {}),
         })),
       );
       await store.setSetting("org_chart", JSON.stringify(clean));

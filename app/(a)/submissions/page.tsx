@@ -8,7 +8,7 @@ import { useActor } from "@/components/AppShell";
 import { fmtAmount, fmtDateTime } from "@/lib/format";
 import { DOC_TAB_LABEL, isMyTurn, matchesTab, personLabel, progressLabel, type DocTab, type Submission } from "@/lib/types";
 
-const TABS: DocTab[] = ["all", "todo", "progress", "done"];
+const TABS: DocTab[] = ["all", "todo", "progress", "done", "rejected"];
 
 /** A-③ 결재 현황 */
 export default function SubmissionsPage() {

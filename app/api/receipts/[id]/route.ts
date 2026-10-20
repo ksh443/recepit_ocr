@@ -75,7 +75,15 @@ export async function PATCH(req: Request, { params }: Ctx) {
       next.matchStatus = statusAgainst(next, card);
       if (next.matchStatus === "no_card" && card) next.matchStatus = "amount_mismatch";
     } else if (body.fields) {
-      Object.assign(next, await computeMatch(next));
+      // 이미 카드 내역과 연결돼 있으면 연결은 그대로 두고 그 내역 기준으로만 다시 판정한다
+      // (다른 내역이 더 맞아 보이면 화면이 알려 주고, 바꿀지는 담당자가 고른다)
+      const card = next.approvalNo ? cards.find((c) => c.approvalNo === next.approvalNo) : undefined;
+      if (card) {
+        next.matchStatus = statusAgainst(next, card);
+        if (next.matchStatus === "no_card") next.matchStatus = "amount_mismatch";
+      } else {
+        Object.assign(next, await computeMatch(next));
+      }
     }
     if (body.memo !== undefined) next.memo = body.memo.trim();
 

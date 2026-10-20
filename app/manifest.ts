@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "영수증 결재 상신",
-    short_name: "영수증상신",
+    name: "지출원인행위 상신 자동화",
+    short_name: "지출상신",
     description: "법인카드 영수증 OCR → 카드 내역 대조 → 적요 작성 → 지출원인행위 결재 상신",
     start_url: "/cards",
     scope: "/",

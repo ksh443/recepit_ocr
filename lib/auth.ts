@@ -17,23 +17,48 @@ function client() {
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
-/** 조직도와 계정을 맞춘다: 없는 계정은 초기 비밀번호로 만들고, 조직도에서 빠진 사람의 계정은 지운다 */
+/** Authentication 사용자 정보에 넣는 구성원 정보 (Supabase 대시보드 Users의 Display name·User metadata에 보임) */
+export const memberMeta = (m: OrgMember) => ({
+  memberId: m.id,
+  rank: m.rank,
+  name: m.name,
+  duty: m.duty,
+  head: m.head,
+  display_name: `${m.rank} ${m.name}${m.duty ? ` (${m.duty})` : ""}`,
+});
+const sameMeta = (a: Record<string, unknown> | undefined, b: Record<string, unknown>) =>
+  Object.entries(b).every(([k, v]) => a?.[k] === v);
+
+/**
+ * 조직도와 계정을 맞춘다: 없는 계정은 초기 비밀번호로 만들고, 계급·이름·직책이 바뀌었으면 계정 정보도 고치고,
+ * 조직도에서 빠진 사람의 계정은 지운다
+ */
 export async function syncAccounts(org: OrgMember[]): Promise<{ created: string[]; deleted: string[] }> {
   if (!authEnabled()) return { created: [], deleted: [] };
   const admin = client().auth.admin;
   const { data, error } = await admin.listUsers({ perPage: 1000 });
   if (error) throw new Error(`계정 목록을 불러오지 못했습니다: ${error.message}`);
-  const users = data.users.filter((u) => u.email?.endsWith(`@${LOGIN_DOMAIN}`));
-  const wanted = new Map(org.filter((m) => m.loginId).map((m) => [loginEmail(m), m]));
+  const wanted = new Map(org.filter((m) => m.loginId || m.email).map((m) => [loginEmail(m).toLowerCase(), m]));
+  // 이 웹앱이 만든 계정 = 시연용 주소이거나 조직도 구성원 표시가 있는 계정
+  const users = data.users.filter(
+    (u) => u.email?.endsWith(`@${LOGIN_DOMAIN}`) || wanted.has(u.email ?? "") || u.user_metadata?.memberId,
+  );
   const created: string[] = [];
   const deleted: string[] = [];
   for (const [email, m] of wanted) {
-    if (users.some((u) => u.email === email)) continue;
+    const u = users.find((x) => x.email === email);
+    if (u) {
+      if (!sameMeta(u.user_metadata, memberMeta(m))) {
+        const r = await admin.updateUserById(u.id, { user_metadata: memberMeta(m) });
+        if (r.error) throw new Error(`${m.name} 계정 정보를 고치지 못했습니다: ${r.error.message}`);
+      }
+      continue;
+    }
     const r = await admin.createUser({
       email,
       password: DEMO_PASSWORD,
       email_confirm: true,
-      user_metadata: { memberId: m.id, name: m.name, rank: m.rank },
+      user_metadata: memberMeta(m),
     });
     if (r.error) throw new Error(`${m.name} 계정을 만들지 못했습니다: ${r.error.message}`);
     created.push(email);
@@ -59,4 +84,15 @@ export async function sessionMember(): Promise<OrgMember | null> {
   const id = await verifySession((await cookies()).get(SESSION_COOKIE)?.value);
   if (!id) return null;
   return (await getSettings()).orgChart.find((m) => m.id === id) ?? null;
+}
+
+/** 비밀번호 바꾸기 (마이페이지) */
+export async function setPassword(m: OrgMember, password: string) {
+  const admin = client().auth.admin;
+  const { data, error } = await admin.listUsers({ perPage: 1000 });
+  if (error) throw new Error(`계정을 찾지 못했습니다: ${error.message}`);
+  const u = data.users.find((x) => x.email === loginEmail(m).toLowerCase());
+  if (!u) throw new Error("로그인 계정이 없습니다. 부서장에게 문의하세요.");
+  const r = await admin.updateUserById(u.id, { password });
+  if (r.error) throw new Error(`비밀번호를 바꾸지 못했습니다: ${r.error.message}`);
 }

@@ -1,3 +1,15 @@
 # 영수증 데이터셋은 GitHub에만 보관하고 Vercel 배포에는 올리지 않는다 (배포 속도·용량)
 archive/
 us_receipts_ocr.csv
+
+# CLI로 직접 배포(vercel deploy)할 때는 .gitignore를 보지 않으므로, 올리면 안 되는 로컬 파일을 여기서도 뺀다
+.env*
+!.env.example
+.data/
+.next/
+node_modules/
+.claude/
+.mcp.json
+*.csv
+*.txt
+tsconfig.tsbuildinfo

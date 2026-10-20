@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { api, errMsg } from "@/components/api";
 import { LoadStatus, useLoad } from "@/components/useLoad";
-import { DEMO_PASSWORD, LOGIN_DOMAIN, sortOrg } from "@/lib/org";
+import { LOGIN_DOMAIN, sortOrg } from "@/lib/org";
 import { personLabel, type OrgMember } from "@/lib/types";
 
 interface Me {
@@ -18,15 +18,16 @@ function nextUrl() {
   return n && n.startsWith("/") && !n.startsWith("//") ? n : "/cards";
 }
 
-/** 로그인 (Supabase Auth). 시연용으로 사람별 "이 사람으로 로그인" 버튼을 함께 보여 준다 */
+/** 로그인 (Supabase Auth). 시연용으로 "이 사람으로 로그인"(사람 고르기 → 초기 비밀번호로 로그인)을 함께 보여 준다 */
 export default function LoginPage() {
   const me = useLoad(() => api<Me>("/api/auth/me"), []);
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [demoId, setDemoId] = useState("");
 
-  const login = async (body: { loginId?: string; memberId?: string; password: string }) => {
+  const login = async (body: { loginId?: string; memberId?: string; password?: string; demo?: boolean }) => {
     setBusy(true);
     setError("");
     try {
@@ -46,7 +47,7 @@ export default function LoginPage() {
         <div className="row" style={{ marginBottom: 12 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icons/icon-192.png" alt="" width={32} height={32} />
-          <h1 style={{ margin: 0 }}>영수증 결재 상신</h1>
+          <h1 style={{ margin: 0 }}>지출원인행위 상신 자동화</h1>
         </div>
 
         {!me.data ? (
@@ -72,7 +73,7 @@ export default function LoginPage() {
               }}
             >
               <label className="stack" style={{ gap: 4 }}>
-                <span className="small">아이디</span>
+                <span className="small">아이디 또는 이메일</span>
                 <span className="row" style={{ gap: 4, flexWrap: "nowrap" }}>
                   <input
                     value={loginId}
@@ -96,27 +97,23 @@ export default function LoginPage() {
             </form>
 
             <h3 style={{ margin: "24px 0 4px" }}>시연용: 이 사람으로 로그인</h3>
-            <p className="muted small" style={{ margin: "0 0 8px" }}>
-              누르면 아이디와 초기 비밀번호({DEMO_PASSWORD})를 자동으로 넣어 로그인합니다.
-            </p>
-            <div className="login-people">
-              {members.map((m) => (
-                <button
-                  key={m.id}
-                  className="btn"
-                  disabled={busy}
-                  onClick={() => {
-                    setLoginId(m.loginId ?? "");
-                    setPassword(DEMO_PASSWORD);
-                    login({ memberId: m.id, password: DEMO_PASSWORD });
-                  }}
-                >
-                  <strong>{personLabel(m)}</strong>
-                  <span className="muted small">
-                    {m.duty || " "} · {m.loginId}
-                  </span>
-                </button>
-              ))}
+            <div className="row" style={{ flexWrap: "nowrap" }}>
+              <select value={demoId} onChange={(e) => setDemoId(e.target.value)} aria-label="로그인할 사람" style={{ flex: 1, minWidth: 0 }}>
+                <option value="">사람 선택</option>
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {personLabel(m)}
+                    {m.duty ? ` (${m.duty})` : ""}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="btn"
+                disabled={busy || !demoId}
+                onClick={() => login({ memberId: demoId, demo: true })}
+              >
+                로그인
+              </button>
             </div>
           </>
         )}

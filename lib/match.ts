@@ -63,12 +63,24 @@ function rank(r: ReceiptValues, list: CardTxn[]): CardTxn[] {
   return [...list].sort((a, b) => score(b) - score(a));
 }
 
-/** 카드 내역 한 건과 영수증 값을 비교한 상태 */
+/** 이 정도 넘게 벌어지면 시간 불일치 (영수증 시각과 카드 승인 시각은 몇 분씩 차이 나는 게 보통) */
+const TIME_GAP_MIN = 180;
+
+/**
+ * 카드 내역 한 건과 영수증 값을 비교한 상태.
+ * 날짜·금액이 기본 기준이고, 둘 다 맞으면 업체(이름에 겹치는 단어가 하나도 없음)·시간(3시간 이상 차이)도 본다
+ */
 export function statusAgainst(r: ReceiptValues, card: CardTxn | undefined | null): MatchStatus {
   if (!card) return "no_card";
   const dateOk = r.date === cardDate(card);
   const amountOk = r.amount !== null && sameAmount(r.amount, card.amount);
-  if (dateOk && amountOk) return "matched";
+  if (dateOk && amountOk) {
+    if (r.merchant && card.merchant && merchantScore(r.merchant, card.merchant) === 0) return "merchant_mismatch";
+    const rt = minutes(r.time);
+    const ct = minutes(cardTime(card));
+    if (rt !== null && ct !== null && Math.abs(rt - ct) >= TIME_GAP_MIN) return "time_mismatch";
+    return "matched";
+  }
   if (dateOk) return "amount_mismatch";
   if (amountOk) return "date_mismatch";
   return "no_card";
@@ -86,7 +98,9 @@ export function matchReceipt(r: ReceiptValues, cards: CardTxn[], linked: Set<str
   };
   const result = (status: MatchStatus, list: CardTxn[]): MatchResult => {
     const ranked = rank(r, list);
-    return { matchStatus: status, approvalNo: ranked[0]?.approvalNo ?? null, candidates: ranked.map((c) => c.approvalNo) };
+    // 날짜·금액이 맞은 짝은 업체·시간까지 확인 (다르면 업체·시간 불일치)
+    const final = status === "matched" && ranked[0] ? statusAgainst(r, ranked[0]) : status;
+    return { matchStatus: final, approvalNo: ranked[0]?.approvalNo ?? null, candidates: ranked.map((c) => c.approvalNo) };
   };
 
   // 1) 날짜 + 금액이 모두 같은 내역 (중복 영수증일 수도 있으니 연결된 내역도 허용)

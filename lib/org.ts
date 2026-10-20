@@ -25,7 +25,7 @@ export const DEFAULT_DRAFTER_ID = "m03";
 export const LOGIN_DOMAIN = "aflc.test";
 /** 시연용 공통 초기 비밀번호 (로그인 화면 "이 사람으로 로그인" 버튼이 자동 입력) */
 export const DEMO_PASSWORD = "000000";
-export const loginEmail = (m: Pick<OrgMember, "loginId">) => `${m.loginId}@${LOGIN_DOMAIN}`;
+export const loginEmail = (m: Pick<OrgMember, "loginId" | "email">) => m.email || `${m.loginId}@${LOGIN_DOMAIN}`;
 
 /** 성 → 로마자 (두 글자 성 먼저) */
 const SURNAMES: Record<string, string> = {
@@ -41,7 +41,7 @@ const SURNAMES: Record<string, string> = {
   편: "pyun", 용: "yong", 예: "ye", 경: "kyung", 봉: "bong", 사: "sa", 부: "boo", 가: "ka", 복: "bok", 태: "tae",
   목: "mok", 형: "hyung", 피: "pi", 두: "doo", 감: "kam", 동: "dong", 호: "ho", 범: "bum", 승: "seung", 상: "sang",
 };
-function surnameRoman(name: string): string {
+export function surnameRoman(name: string): string {
   const n = name.trim();
   return SURNAMES[n.slice(0, 2)] ?? SURNAMES[n.slice(0, 1)] ?? "user";
 }
@@ -74,8 +74,10 @@ export function validateOrg(org: unknown): string | null {
     if (!m.rank?.trim()) return `${m.name}의 직급이 비어 있습니다.`;
   }
   const logins = (org as OrgMember[]).map((m) => m.loginId).filter(Boolean) as string[];
-  if (logins.some((l) => !/^[a-z][a-z0-9]{0,29}$/.test(l))) return "로그인 아이디는 영문 소문자·숫자만 쓸 수 있습니다.";
+  if (logins.some((l) => !/^[a-z0-9][a-z0-9._-]{0,39}$/.test(l))) return "로그인 아이디는 영문 소문자·숫자(. _ -)만 쓸 수 있습니다.";
   if (new Set(logins).size !== logins.length) return "로그인 아이디가 중복됩니다.";
+  const emails = (org as OrgMember[]).map((m) => loginEmail(m).toLowerCase()).filter((e) => !e.startsWith("undefined@"));
+  if (new Set(emails).size !== emails.length) return "이메일이 중복됩니다.";
   const heads = (org as OrgMember[]).filter((m) => m.head).length;
   if (heads !== 1) return "부서장은 한 명이어야 합니다.";
   return null;
