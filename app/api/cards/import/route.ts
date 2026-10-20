@@ -12,9 +12,7 @@ export async function POST(req: Request) {
     if (!Array.isArray(rows) || !rows.length) return fail(new Error("불러올 내역이 없습니다."), 400);
     const at = nowKst();
     const store = getStore();
-    const res = await store.aUpsert(rows.map((r) => ({ ...r, fetchedAt: at })));
-    await store.setSetting("last_fetched_at", at);
-    await store.setSetting("last_fetch_source", "CSV 업로드");
+    const res = await store.aUpsert(rows.map((r) => ({ ...r, fetchedAt: at, importSource: "CSV 업로드" })));
     const rematched = await rematchUnlinked();
     return ok({ ...res, total: rows.length, rematched, lastFetchedAt: at });
   } catch (e) {

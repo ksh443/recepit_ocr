@@ -17,6 +17,8 @@ export interface Store {
   // (A) 불러온 카드 내역
   aList(): Promise<CardTxn[]>;
   aUpsert(rows: CardTxn[]): Promise<{ added: number; updated: number }>;
+  /** 가장 최근에 불러온 일시·방식 */
+  aLastImport(): Promise<{ at: string; source: string | null } | null>;
   // 설정
   getSetting(key: string): Promise<string | null>;
   setSetting(key: string, value: string): Promise<void>;
@@ -63,6 +65,10 @@ function rowTo<T>(row: Record<string, unknown>): T {
 }
 
 const BUCKET = "receipts";
+/** 카드사(B)가 가진 원본 사용내역 */
+const T_ISSUER = "card_issuer_transactions";
+/** 결재 웹앱(A)이 카드사에서 불러온 사용내역 */
+const T_IMPORTED = "imported_card_transactions";
 
 class SupabaseStore implements Store {
   readonly kind = "supabase" as const;
@@ -93,19 +99,30 @@ class SupabaseStore implements Store {
   }
 
   bList(from?: string, to?: string) {
-    return this.listCards("card_transactions_b", from, to);
+    return this.listCards(T_ISSUER, from, to);
   }
   bUpsert(rows: CardTxn[]) {
-    return this.upsertCards("card_transactions_b", rows);
+    return this.upsertCards(T_ISSUER, rows);
   }
   async bDelete(approvalNo: string) {
-    await this.q(this.sb.from("card_transactions_b").delete().eq("approval_no", approvalNo));
+    await this.q(this.sb.from(T_ISSUER).delete().eq("approval_no", approvalNo));
   }
   aList() {
-    return this.listCards("card_transactions_a");
+    return this.listCards(T_IMPORTED);
   }
   aUpsert(rows: CardTxn[]) {
-    return this.upsertCards("card_transactions_a", rows);
+    return this.upsertCards(T_IMPORTED, rows);
+  }
+  async aLastImport() {
+    const rows = await this.q<{ fetched_at: string | null; import_source: string | null }[]>(
+      this.sb
+        .from(T_IMPORTED)
+        .select("fetched_at, import_source")
+        .not("fetched_at", "is", null)
+        .order("fetched_at", { ascending: false })
+        .limit(1),
+    );
+    return rows[0]?.fetched_at ? { at: rows[0].fetched_at, source: rows[0].import_source } : null;
   }
 
   async getSetting(key: string) {
@@ -244,6 +261,12 @@ class LocalStore implements Store {
   }
   aUpsert(rows: CardTxn[]) {
     return this.mutate((db) => this.upsert(db.cardsA, rows));
+  }
+  async aLastImport() {
+    const latest = (await this.load()).cardsA
+      .filter((c) => c.fetchedAt)
+      .sort((a, b) => b.fetchedAt!.localeCompare(a.fetchedAt!))[0];
+    return latest ? { at: latest.fetchedAt!, source: latest.importSource ?? null } : null;
   }
 
   async getSetting(key: string) {

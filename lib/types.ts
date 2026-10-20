@@ -9,6 +9,7 @@ export interface CardTxn {
   cardLast4: string; // 카드끝4자리
   registeredAt?: string | null; // (B) 등록 일시
   fetchedAt?: string | null; // (A) 불러온 일시
+  importSource?: string | null; // (A) 불러온 방식: 새로고침 / CSV 업로드
 }
 
 export type MatchStatus = "matched" | "amount_mismatch" | "date_mismatch" | "no_card";

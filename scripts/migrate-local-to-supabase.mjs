@@ -64,11 +64,15 @@ for (const f of files) {
 console.log(`- 영수증 파일: ${uploaded}개`);
 
 // 2) 표 (영수증을 상신 문서보다 먼저: 상신 문서가 영수증을 참조)
-await upsert("card_transactions_b", db.cardsB, "approval_no");
-await upsert("card_transactions_a", db.cardsA, "approval_no");
+await upsert("card_issuer_transactions", (db.cardsB ?? []).map(({ fetchedAt, importSource, ...c }) => c), "approval_no");
+await upsert("imported_card_transactions", (db.cardsA ?? []).map(({ registeredAt, ...c }) => c), "approval_no");
+// 진짜 설정(조직도·기본 담당)만 옮긴다
+const SETTING_KEYS = ["org_chart", "default_drafter_id"];
 await upsert(
   "settings",
-  Object.entries(db.settings ?? {}).map(([k, value]) => ({ key: k, value })),
+  Object.entries(db.settings ?? {})
+    .filter(([k]) => SETTING_KEYS.includes(k))
+    .map(([k, value]) => ({ key: k, value })),
   "key",
 );
 await upsert("receipts", db.receipts, "id");

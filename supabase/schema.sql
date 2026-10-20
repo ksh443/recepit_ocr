@@ -2,8 +2,19 @@
 -- Supabase 대시보드 > SQL Editor 에 붙여 넣고 실행하세요.
 -- 서버는 Secret key(service_role)로만 접근하므로, 모든 표에 RLS를 켜고 공개(anon) 정책은 만들지 않습니다.
 
--- (B) 카드사 원장: 카드 사용내역 조회 웹페이지
-create table if not exists card_transactions_b (
+-- 이 파일은 여러 번 실행해도 됩니다. 예전 이름의 카드 표가 있으면 데이터는 그대로 두고 이름만 바꿉니다.
+do $$
+begin
+  if to_regclass('public.card_transactions_b') is not null and to_regclass('public.card_issuer_transactions') is null then
+    alter table card_transactions_b rename to card_issuer_transactions;
+  end if;
+  if to_regclass('public.card_transactions_a') is not null and to_regclass('public.imported_card_transactions') is null then
+    alter table card_transactions_a rename to imported_card_transactions;
+  end if;
+end $$;
+
+-- 카드사(B)가 가진 원본 사용내역: 카드 사용내역 조회 웹페이지
+create table if not exists card_issuer_transactions (
   approval_no   text primary key,          -- 승인번호
   approved_at   text not null,             -- 승인일시 'YYYY-MM-DD HH:MM'
   merchant      text not null default '',  -- 가맹점명
@@ -11,12 +22,11 @@ create table if not exists card_transactions_b (
   amount        numeric not null,          -- 금액
   currency      text not null default '',  -- 통화
   card_last4    text not null default '',  -- 카드끝4자리
-  registered_at text,                      -- 등록 일시
-  fetched_at    text
+  registered_at text                       -- 등록 일시
 );
 
--- (A) 결재 상신 웹앱이 새로고침으로 불러온 내역 (승인번호 기준 중복 없음)
-create table if not exists card_transactions_a (
+-- 결재 웹앱(A)이 카드사에서 불러온 사용내역 (승인번호 기준 중복 없음)
+create table if not exists imported_card_transactions (
   approval_no   text primary key,
   approved_at   text not null,
   merchant      text not null default '',
@@ -24,11 +34,12 @@ create table if not exists card_transactions_a (
   amount        numeric not null,
   currency      text not null default '',
   card_last4    text not null default '',
-  registered_at text,
-  fetched_at    text                       -- 불러온 일시
+  fetched_at    text,                      -- 불러온 일시
+  import_source text                       -- 불러온 방식: 새로고침 / CSV 업로드
 );
+alter table imported_card_transactions add column if not exists import_source text;
 
--- 설정값 (상급자 이름, 상신자 이름, 마지막 불러온 일시)
+-- 앱 설정 (조직도 org_chart, 기본 담당 default_drafter_id)
 create table if not exists settings (
   key   text primary key,
   value text not null
@@ -87,8 +98,8 @@ alter table submissions add column if not exists previous_submission_id uuid;
 alter table submissions add column if not exists previous_doc_no text;
 alter table receipts add column if not exists uploader_id text;
 
-alter table card_transactions_b enable row level security;
-alter table card_transactions_a enable row level security;
+alter table card_issuer_transactions   enable row level security;
+alter table imported_card_transactions enable row level security;
 alter table settings            enable row level security;
 alter table receipts            enable row level security;
 alter table submissions         enable row level security;
@@ -100,3 +111,5 @@ on conflict (id) do nothing;
 
 -- 설정(조직도 org_chart, 결재선 기본 담당자 default_drafter_id)은 비어 있으면 앱의 기본 조직도를 쓰고,
 -- 웹앱 설정 화면에서 저장하면 이 표에 들어간다.
+-- 예전 버전이 설정 표에 넣던 값(설정이 아닌 기록·쓰지 않는 값)은 지운다. 불러온 일시·방식은 imported_card_transactions 에 있다.
+delete from settings where key in ('last_fetched_at', 'last_fetch_source', 'approver_name', 'submitter_name', 'submitter_rank');

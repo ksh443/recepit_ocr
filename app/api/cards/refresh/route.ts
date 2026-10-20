@@ -37,9 +37,7 @@ export async function POST(req: Request) {
 
     const at = nowKst();
     const store = getStore();
-    const res = await store.aUpsert(rows.map((r) => ({ ...r, fetchedAt: at })));
-    await store.setSetting("last_fetched_at", at);
-    await store.setSetting("last_fetch_source", "새로고침");
+    const res = await store.aUpsert(rows.map((r) => ({ ...r, fetchedAt: at, importSource: "새로고침" })));
     const rematched = await rematchUnlinked();
     return ok({ ...res, total: rows.length, errors, rematched, lastFetchedAt: at });
   } catch (e) {
