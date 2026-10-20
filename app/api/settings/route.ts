@@ -1,0 +1,26 @@
+import { getStore } from "@/lib/store";
+import { aiProvider } from "@/lib/ai";
+import { fail, getSettings, ok } from "@/lib/service";
+import type { Settings } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  try {
+    return ok({ settings: await getSettings(), storage: getStore().kind, ai: aiProvider() });
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const body = (await req.json()) as Partial<Settings>;
+    const store = getStore();
+    if (body.approverName?.trim()) await store.setSetting("approver_name", body.approverName.trim());
+    if (body.submitterName?.trim()) await store.setSetting("submitter_name", body.submitterName.trim());
+    return ok({ settings: await getSettings() });
+  } catch (e) {
+    return fail(e);
+  }
+}
