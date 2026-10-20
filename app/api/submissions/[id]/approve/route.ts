@@ -1,22 +1,26 @@
 import { getStore } from "@/lib/store";
 import { nowKst } from "@/lib/format";
 import { fail, ok } from "@/lib/service";
+import { sessionMember } from "@/lib/auth";
+import { authEnabled } from "@/lib/session";
 import { lineOf, nextStepIndex, personLabel, samePerson, signerLabel, signerOf, type Person } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 /**
- * (시연) 상급자 보기에서 "계정 선택"한 사람이 결재선의 다음 단계에 승인 또는 반려.
- * 로그인이 없으므로 화면에서 고른 계정을 그대로 믿는다. 차례가 아닌 사람은 막는다.
+ * 로그인한 사람이 결재선의 다음 단계에 승인 또는 반려. 차례가 아닌 사람은 막는다.
+ * (로컬 개발 모드는 로그인이 없으므로 화면에서 고른 계정을 그대로 믿는다)
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const { actor, decision = "approve", comment } = (await req.json().catch(() => ({}))) as {
+    const body = (await req.json().catch(() => ({}))) as {
       actor?: Person;
       decision?: "approve" | "reject";
       comment?: string;
     };
+    const { decision = "approve", comment } = body;
+    const actor: Person | null | undefined = authEnabled() ? await sessionMember() : body.actor;
     if (!actor?.name) return fail(new Error("계정을 선택해 주세요."), 400);
     if (decision === "reject" && !comment?.trim()) return fail(new Error("반려 사유를 입력해 주세요."), 400);
 

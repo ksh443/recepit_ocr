@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { api, errMsg } from "@/components/api";
+import { useState } from "react";
+import { api } from "@/components/api";
+import { LoadStatus, ReloadError, useLoad } from "@/components/useLoad";
 import { useActor } from "@/components/AppShell";
 import { fmtAmount, fmtDateTime } from "@/lib/format";
 import { DOC_TAB_LABEL, isMyTurn, matchesTab, personLabel, progressLabel, type DocTab, type Submission } from "@/lib/types";
@@ -12,15 +13,9 @@ const TABS: DocTab[] = ["all", "todo", "progress", "done"];
 /** A-③ 결재 현황 */
 export default function SubmissionsPage() {
   const actor = useActor();
-  const [list, setList] = useState<Submission[] | null>(null);
   const [tab, setTab] = useState<DocTab>("all");
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    api<{ submissions: Submission[] }>("/api/submissions")
-      .then((r) => setList(r.submissions))
-      .catch((e) => setError(errMsg(e)));
-  }, []);
+  const { data, error, slow, reload } = useLoad(() => api<{ submissions: Submission[] }>("/api/submissions"), []);
+  const list = data?.submissions ?? null;
 
   // 선택한 계정이 결재선(담당·검토·결재·대결)에 든 문서만
   const who = actor;
@@ -45,7 +40,7 @@ export default function SubmissionsPage() {
           ))}
         </div>
       </div>
-      {error && <div className="alert error">{error}</div>}
+      {list && <ReloadError error={error} onRetry={reload} />}
       <div className="table-wrap">
         <table className="tbl">
           <thead>
@@ -63,13 +58,17 @@ export default function SubmissionsPage() {
             {list === null ? (
               <tr>
                 <td colSpan={7} className="empty">
-                  불러오는 중…
+                  <LoadStatus error={error} slow={slow} onRetry={reload} />
                 </td>
               </tr>
             ) : shown.length === 0 ? (
               <tr>
                 <td colSpan={7} className="empty">
-                  {tab === "todo" ? "지금 처리할 문서가 없습니다." : "해당하는 문서가 없습니다."}
+                  {tab === "todo"
+                    ? "지금 처리할 문서가 없습니다."
+                    : list.length === 0
+                      ? "아직 상신한 문서가 없습니다. 영수증 처리 화면에서 결재 상신을 하면 여기에 보입니다."
+                      : "해당하는 문서가 없습니다."}
                 </td>
               </tr>
             ) : (

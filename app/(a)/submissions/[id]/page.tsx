@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { use, useEffect, useState } from "react";
+import { use, useState } from "react";
 import { api, errMsg } from "@/components/api";
+import { LoadStatus, useLoad } from "@/components/useLoad";
 import { useActor } from "@/components/AppShell";
 import { ReceiptScan, useLightbox } from "@/components/ui";
 import { fmtAmount, fmtDateTime, signDate } from "@/lib/format";
@@ -23,16 +24,12 @@ import {
 export default function SubmissionDocPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const actor = useActor();
-  const [s, setS] = useState<Submission | null>(null);
-  const [error, setError] = useState("");
+  const { data, setData, error, slow, reload } = useLoad(() => api<{ submission: Submission }>(`/api/submissions/${id}`), [id]);
+  const s = data?.submission ?? null;
+  const setS = (x: Submission) => setData({ submission: x });
   const [busy, setBusy] = useState(false);
   const lightbox = useLightbox();
 
-  useEffect(() => {
-    api<{ submission: Submission }>(`/api/submissions/${id}`)
-      .then((r) => setS(r.submission))
-      .catch((e) => setError(errMsg(e)));
-  }, [id]);
 
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
@@ -56,8 +53,12 @@ export default function SubmissionDocPage({ params }: { params: Promise<{ id: st
   };
   const [actionError, setActionError] = useState("");
 
-  if (error) return <div className="alert error">{error}</div>;
-  if (!s) return <p className="muted">불러오는 중…</p>;
+  if (!s)
+    return (
+      <p className="muted">
+        <LoadStatus error={error} slow={slow} onRetry={reload} />
+      </p>
+    );
 
   const line = lineOf(s);
   const next = nextStepIndex(line);

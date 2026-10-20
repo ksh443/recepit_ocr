@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { api, errMsg } from "@/components/api";
+import { LoadStatus, ReloadError, useLoad } from "@/components/useLoad";
 import { DateRange, StatusBadge } from "@/components/ui";
 import { decodeCsvBytes, parseCardCsv } from "@/lib/csv";
 import { fmtAmount, thisMonthRange } from "@/lib/format";
@@ -25,23 +26,12 @@ const FILTERS: ("all" | CardStatus)[] = ["all", "matched", "amount_mismatch", "d
 /** A-① 카드 사용내역 */
 export default function CardsPage() {
   const [range, setRange] = useState(thisMonthRange);
-  const [data, setData] = useState<CardsRes | null>(null);
   const [filter, setFilter] = useState<"all" | CardStatus>("all");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ type: "info" | "error" | "warn"; text: string } | null>(null);
   const [showCsv, setShowCsv] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      setData(await api<CardsRes>("/api/cards"));
-    } catch (e) {
-      setMsg({ type: "error", text: errMsg(e) });
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { data, error, slow, reload: load } = useLoad(() => api<CardsRes>("/api/cards"), []);
 
   const refresh = async () => {
     setBusy(true);
@@ -147,6 +137,7 @@ export default function CardsPage() {
         )}
       </div>
 
+      {data && <ReloadError error={error} onRetry={load} />}
       {msg && (
         <div className={`alert ${msg.type}`} style={{ marginTop: 16 }}>
           {msg.text}
@@ -179,13 +170,15 @@ export default function CardsPage() {
             {data === null ? (
               <tr>
                 <td colSpan={6} className="empty">
-                  불러오는 중…
+                  <LoadStatus error={error} slow={slow} onRetry={load} />
                 </td>
               </tr>
             ) : shown.length === 0 ? (
               <tr>
                 <td colSpan={6} className="empty">
-                  {inRange.length === 0 ? "조회 기간에 불러온 내역이 없습니다. 새로고침을 눌러 주세요." : "해당 상태의 내역이 없습니다."}
+                  {inRange.length === 0
+                    ? `조회 기간(${range.from || "처음"} ~ ${range.to || "오늘"})에 카드 사용내역이 없습니다. 새로고침을 눌러 카드사에서 불러오거나 조회 기간을 바꿔 보세요.`
+                    : "해당 상태의 내역이 없습니다."}
                 </td>
               </tr>
             ) : (

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStore } from "./store";
 import { matchReceipt, type MatchResult } from "./match";
-import { DEFAULT_DRAFTER_ID, DEFAULT_ORG, validateOrg } from "./org";
+import { DEFAULT_DRAFTER_ID, DEFAULT_ORG, assignLoginIds, validateOrg } from "./org";
 import { approvalState, type ApprovalState, type CardStatus, type CardTxn, type OrgMember, type Receipt, type Settings } from "./types";
 
 export function ok(data: unknown, init?: ResponseInit) {
@@ -86,6 +86,8 @@ export async function getSettings(): Promise<Settings> {
       /* 저장값이 깨졌으면 기본 조직도 */
     }
   }
+  // 예전에 저장한 조직도에는 로그인 아이디가 없다 → 성 로마자로 붙인다 (저장할 때 함께 저장됨)
+  orgChart = assignLoginIds(orgChart);
   const defaultDrafterId = drafterId ?? DEFAULT_DRAFTER_ID;
   return {
     orgChart,

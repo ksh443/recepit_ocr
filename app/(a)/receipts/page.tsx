@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, errMsg } from "@/components/api";
+import { LoadStatus, ReloadError, useLoad } from "@/components/useLoad";
 import { ReceiptScan, StatusBadge, useLightbox } from "@/components/ui";
 import { renderPdfPreview } from "@/components/pdf";
 import ApprovalLinePicker from "@/components/ApprovalLinePicker";
@@ -67,25 +68,23 @@ export default function ReceiptsPage() {
   const lightbox = useLightbox();
 
   // 선택한 계정이 올린 영수증만
-  const load = useCallback(async () => {
-    if (!actor) return;
-    try {
-      const [r, c, s] = await Promise.all([
-        api<{ receipts: Receipt[] }>(`/api/receipts?uploaderId=${encodeURIComponent(actor.id)}`),
+  const loader = useLoad(
+    () =>
+      Promise.all([
+        api<{ receipts: Receipt[] }>(`/api/receipts?uploaderId=${encodeURIComponent(actor!.id)}`),
         api<{ cards: CardTxn[] }>("/api/cards"),
         api<{ submissions: Submission[] }>("/api/submissions"),
-      ]);
-      setReceipts(r.receipts);
-      setCards(c.cards);
-      setSubs(new Map(s.submissions.map((x) => [x.id, x])));
-    } catch (e) {
-      setError(errMsg(e));
-    }
-  }, [actor]);
-
+      ]),
+    [actor?.id],
+    Boolean(actor),
+  );
   useEffect(() => {
-    load();
-  }, [load]);
+    if (!loader.data) return;
+    const [r, c, s] = loader.data;
+    setReceipts(r.receipts);
+    setCards(c.cards);
+    setSubs(new Map(s.submissions.map((x) => [x.id, x])));
+  }, [loader.data]);
 
   // 카드 사용내역 화면에서 상태 배지를 눌러 들어온 경우 해당 영수증으로 스크롤
   useEffect(() => {
@@ -222,6 +221,7 @@ export default function ReceiptsPage() {
         />
       </div>
 
+      {receipts && <ReloadError error={loader.error} onRetry={loader.reload} />}
       {error && (
         <div className="alert error" style={{ marginTop: 16 }}>
           {error}
@@ -234,10 +234,18 @@ export default function ReceiptsPage() {
 
       <div className="stack">
         {receipts === null ? (
-          <div className="card muted">불러오는 중…</div>
+          <div className="card muted">
+            {actor ? (
+              <LoadStatus error={loader.error} slow={loader.slow} onRetry={loader.reload} />
+            ) : (
+              "계정 정보가 없어 영수증을 불러올 수 없습니다. 다시 로그인해 주세요."
+            )}
+          </div>
         ) : list.length === 0 ? (
           <div className="card muted" style={{ textAlign: "center" }}>
-            아직 올린 영수증이 없습니다.
+            {receipts.length === 0
+              ? "아직 올린 영수증이 없습니다. 위에서 영수증 파일을 올려 주세요."
+              : "처리할 영수증이 없습니다. 상신한 영수증은 \"상신 완료 건도 보기\"를 켜면 보입니다."}
           </div>
         ) : (
           list.map((r) => (

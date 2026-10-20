@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { api, errMsg } from "@/components/api";
+import { LoadStatus, ReloadError, useLoad } from "@/components/useLoad";
 import { DateRange } from "@/components/ui";
 import { fmtAmount, thisMonthRange } from "@/lib/format";
 import type { CardTxn } from "@/lib/types";
@@ -10,23 +11,16 @@ import type { CardTxn } from "@/lib/types";
 /** (B) ① 사용내역 조회 */
 export default function CardHistoryPage() {
   const [range, setRange] = useState(thisMonthRange);
-  const [rows, setRows] = useState<CardTxn[] | null>(null);
   const [error, setError] = useState("");
-
-  const load = useCallback(async () => {
+  const loader = useLoad(
+    () => api<{ rows: CardTxn[] }>(`/api/card/transactions?${new URLSearchParams({ ...range, format: "json" })}`),
+    [range.from, range.to],
+  );
+  const rows = loader.data?.rows ?? null;
+  const load = () => {
     setError("");
-    try {
-      const qs = new URLSearchParams({ ...range, format: "json" });
-      const { rows } = await api<{ rows: CardTxn[] }>(`/api/card/transactions?${qs}`);
-      setRows(rows);
-    } catch (e) {
-      setError(errMsg(e));
-    }
-  }, [range]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+    return loader.reload();
+  };
 
   const totals = useMemo(() => {
     const m = new Map<string, number>();
@@ -63,6 +57,7 @@ export default function CardHistoryPage() {
       </div>
 
       {error && <div className="alert error">{error}</div>}
+      {rows && <ReloadError error={loader.error} onRetry={load} />}
 
       <div className="b-panel b-sum">
         <span>
@@ -93,13 +88,13 @@ export default function CardHistoryPage() {
             {rows === null ? (
               <tr>
                 <td colSpan={8} className="empty">
-                  불러오는 중…
+                  <LoadStatus error={loader.error} slow={loader.slow} onRetry={load} />
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
                 <td colSpan={8} className="empty">
-                  조회 기간에 사용내역이 없습니다. <Link href="/card/register">내역 등록</Link>에서 CSV를 올려 주세요.
+                  조회 기간({range.from || "처음"} ~ {range.to || "오늘"})에 사용내역이 없습니다. <Link href="/card/register">내역 등록</Link>에서 CSV를 올려 주세요.
                 </td>
               </tr>
             ) : (

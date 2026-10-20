@@ -112,6 +112,7 @@ export interface OrgMember {
   name: string;
   duty: string; // 직책 (예: 부서장, 재정담당)
   head: boolean; // 부서장 여부 (결재 기본값)
+  loginId?: string; // 로그인 아이디 (성 로마자, 예: kwon → kwon@aflc.test). 없으면 저장할 때 붙인다
 }
 
 export interface Person {

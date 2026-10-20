@@ -3,6 +3,8 @@ import { getStore } from "@/lib/store";
 import { ocrReceipt } from "@/lib/ai";
 import { nowKst } from "@/lib/format";
 import { computeMatch, fail, getSettings, ok } from "@/lib/service";
+import { sessionMember } from "@/lib/auth";
+import { authEnabled } from "@/lib/session";
 import type { OcrResult, Receipt } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -87,7 +89,8 @@ export async function POST(req: Request) {
       memoNote: "",
       memoAlternatives: [],
       submissionId: null,
-      uploaderId: String(form.get("uploaderId") || "") || null,
+      // 로그인 모드에서는 로그인한 사람, 로컬 개발 모드에서는 화면에서 고른 계정
+      uploaderId: (authEnabled() ? (await sessionMember())?.id : String(form.get("uploaderId") || "")) || null,
       createdAt: nowKst(),
     };
     await store.insertReceipt(receipt);

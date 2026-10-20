@@ -234,3 +234,13 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
   .nav a { padding: 6px 10px; font-size: 14px; }
   h1 { font-size: 19px; }
 }
+
+/* 불러오기 상태 (불러오는 중 / 늦어짐 / 실패 + 다시 시도) */
+.load-status { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.load-status.error { color: var(--danger); }
+
+/* 로그인 */
+.login-page { max-width: 560px; }
+.login-card { margin-top: 24px; }
+.login-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.login-people .btn { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; }
