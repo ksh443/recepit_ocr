@@ -1,5 +1,5 @@
 import { getStore } from "@/lib/store";
-import { aiProvider } from "@/lib/ai";
+import { aiModels, aiProvider } from "@/lib/ai";
 import { fail, getSettings, ok } from "@/lib/service";
 import type { Settings } from "@/lib/types";
 
@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    return ok({ settings: await getSettings(), storage: getStore().kind, ai: aiProvider() });
+    return ok({ settings: await getSettings(), storage: getStore().kind, ai: aiProvider(), models: aiModels() });
   } catch (e) {
     return fail(e);
   }

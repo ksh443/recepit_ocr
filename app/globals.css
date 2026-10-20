@@ -143,6 +143,9 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
 .rc { display: grid; grid-template-columns: 220px 1fr; gap: 16px; }
 @media (max-width: 760px) { .rc { grid-template-columns: 1fr; } }
 .rc-img { width: 100%; max-height: 360px; object-fit: contain; background: #f3f4f6; border-radius: 8px; border: 1px solid var(--line); cursor: zoom-in; }
+.scan { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.scan-pdf { width: 100%; height: 360px; border: 1px solid var(--line); border-radius: 8px; }
+.doc-scan .scan-pdf { height: 640px; }
 .ocr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .need-check input { border-color: #fca5a5; background: #fffafa; }
 .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #fde68a; border-radius: 8px; overflow: hidden; font-size: 14px; }

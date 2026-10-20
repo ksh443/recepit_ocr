@@ -1,7 +1,7 @@
 import type { OcrResult } from "./types";
 import type { MemoInput, MemoResult } from "./prompts";
 import { claudeMemo, claudeOcr } from "./claude";
-import { geminiMemo, geminiOcr } from "./gemini";
+import { geminiMemo, geminiModels, geminiOcr } from "./gemini";
 
 export type AiProvider = "claude" | "gemini" | null;
 
@@ -14,6 +14,14 @@ export function aiProvider(): AiProvider {
   if (forced === "claude" && hasClaude) return "claude";
   if (hasClaude) return "claude";
   if (hasGemini) return "gemini";
+  return null;
+}
+
+/** 설정 화면 표시용: 기능별로 쓰는 모델 */
+export function aiModels(): { ocr: string; memo: string } | null {
+  const p = aiProvider();
+  if (p === "claude") return { ocr: "claude-opus-5-5", memo: "claude-opus-5-5" };
+  if (p === "gemini") return geminiModels();
   return null;
 }
 

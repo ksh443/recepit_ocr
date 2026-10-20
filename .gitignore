@@ -10,6 +10,9 @@ next-env.d.ts
 .env.local
 .env.*.local
 
+# pdf.js 보조 파일 (빌드 때 node_modules 에서 복사)
+public/pdfjs/
+
 # 로컬 개발용 데이터 저장소 (Supabase 미설정 시 사용)
 .data/
 

@@ -39,7 +39,8 @@ create table if not exists receipts (
   id                uuid primary key,
   file_name         text not null,
   image_path        text not null,          -- Storage 경로
-  content_type      text not null,
+  content_type      text not null,          -- image/jpeg, image/png, application/pdf
+  preview_path      text,                   -- PDF 화면 표시용 JPEG 경로
   ocr               jsonb,                  -- OCR 원본 결과
   ocr_error         text,
   date              text,                   -- 담당자 확인값
@@ -75,6 +76,9 @@ create table if not exists submissions (
   approver_name text,
   approved_at   text
 );
+
+-- 이전 버전 스키마를 이미 실행한 경우를 위한 보강
+alter table receipts add column if not exists preview_path text;
 
 alter table card_transactions_b enable row level security;
 alter table card_transactions_a enable row level security;

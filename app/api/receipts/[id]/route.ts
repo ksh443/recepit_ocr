@@ -97,6 +97,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     if (r.submissionId) return fail(new Error("상신된 영수증은 삭제할 수 없습니다."), 409);
     await store.deleteReceipt(id);
     await store.deleteImage(r.imagePath).catch(() => undefined);
+    if (r.previewPath) await store.deleteImage(r.previewPath).catch(() => undefined);
     return ok({ ok: true });
   } catch (e) {
     return fail(e);

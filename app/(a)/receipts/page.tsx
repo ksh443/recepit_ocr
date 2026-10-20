@@ -4,9 +4,25 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, errMsg } from "@/components/api";
-import { StatusBadge, useLightbox } from "@/components/ui";
+import { ReceiptScan, StatusBadge, useLightbox } from "@/components/ui";
+import { renderPdfPreview } from "@/components/pdf";
 import { fmtAmount, fmtDateTime } from "@/lib/format";
 import type { CardTxn, Receipt } from "@/lib/types";
+
+const isPdf = (f: File) => f.type === "application/pdf" || /\.pdf$/i.test(f.name);
+const ACCEPTED = (f: File) => f.type.startsWith("image/") || isPdf(f);
+
+/** 업로드할 파일 준비: 사진은 줄이고, PDF는 원본 + 화면 표시용 미리보기 */
+async function prepareUpload(file: File): Promise<{ file: Blob; preview: Blob | null }> {
+  if (isPdf(file)) {
+    if (file.size > 4 * 1024 * 1024) throw new Error("PDF가 너무 큽니다. (4MB 이하)");
+    const pdf = file.type === "application/pdf" ? file : new Blob([file], { type: "application/pdf" });
+    // 미리보기를 못 만들어도 업로드는 진행 (화면에서는 PDF 뷰어로 대신 표시)
+    const preview = await renderPdfPreview(pdf).catch((e) => (console.warn("PDF 미리보기 실패", e), null));
+    return { file: pdf, preview };
+  }
+  return { file: await prepareImage(file), preview: null };
+}
 
 /** 큰 사진(휴대폰 카메라 등)은 브라우저에서 줄여서 올린다 */
 async function prepareImage(file: File): Promise<Blob> {
@@ -67,15 +83,20 @@ export default function ReceiptsPage() {
   const remove = (id: string) => setReceipts((list) => (list ?? []).filter((x) => x.id !== id));
 
   const upload = async (files: File[]) => {
-    const imgs = files.filter((f) => f.type.startsWith("image/"));
-    if (!imgs.length) return;
+    const imgs = files.filter(ACCEPTED);
+    if (!imgs.length) {
+      if (files.length) setError("JPG·PNG 이미지 또는 PDF만 올릴 수 있습니다.");
+      return;
+    }
     setError("");
     for (let i = 0; i < imgs.length; i++) {
       const f = imgs[i];
       setQueue({ done: i, total: imgs.length, current: f.name });
       try {
+        const prepared = await prepareUpload(f);
         const body = new FormData();
-        body.append("file", await prepareImage(f), f.name);
+        body.append("file", prepared.file, f.name);
+        if (prepared.preview) body.append("preview", prepared.preview, "preview.jpg");
         body.append("fileName", f.name);
         const { receipt } = await api<{ receipt: Receipt }>("/api/receipts", { method: "POST", body });
         setReceipts((list) => [receipt, ...(list ?? [])]);
@@ -140,8 +161,8 @@ export default function ReceiptsPage() {
           </div>
         ) : (
           <div>
-            <strong>영수증 이미지를 끌어다 놓거나 눌러서 선택</strong>
-            <div className="muted small">JPG·PNG, 여러 장 한 번에 가능</div>
+            <strong>영수증 파일을 끌어다 놓거나 눌러서 선택</strong>
+            <div className="muted small">JPG·PNG·PDF, 여러 장 한 번에 가능</div>
             <div className="row" style={{ justifyContent: "center", marginTop: 10 }}>
               <button
                 type="button"
@@ -159,7 +180,7 @@ export default function ReceiptsPage() {
         <input
           ref={fileRef}
           type="file"
-          accept="image/jpeg,image/png"
+          accept="image/jpeg,image/png,application/pdf,.pdf"
           multiple
           hidden
           onChange={(e) => {
@@ -260,7 +281,6 @@ function ReceiptCard({
   const dirty = JSON.stringify(f) !== JSON.stringify(toFields(r));
   const card = r.approvalNo ? cardMap.get(r.approvalNo) : undefined;
   const pickCard = pick ? cardMap.get(pick) : undefined;
-  const img = `/api/receipts/${r.id}/image`;
 
   const run = async (label: string, fn: () => Promise<Receipt | void>) => {
     setBusy(label);
@@ -353,8 +373,7 @@ function ReceiptCard({
 
       <div className="rc">
         <div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="rc-img" src={img} alt={`${r.fileName} 영수증`} onClick={() => onZoom(img)} loading="lazy" />
+          <ReceiptScan receiptId={r.id} isPdf={r.contentType === "application/pdf"} className="rc-img" onZoom={onZoom} />
         </div>
 
         <div className="stack" style={{ gap: 12 }}>

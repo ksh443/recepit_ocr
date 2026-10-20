@@ -8,9 +8,10 @@ interface SettingsRes {
   settings: Settings;
   storage: "supabase" | "local";
   ai: "claude" | "gemini" | null;
+  models: { ocr: string; memo: string } | null;
 }
 
-const AI_LABEL = { claude: "Claude API (claude-opus-5-5)", gemini: "Google Gemini API (무료 사용량)" };
+const AI_LABEL = { claude: "Claude API", gemini: "Google Gemini API (무료 등급)" };
 
 export default function SettingsPage() {
   const [data, setData] = useState<SettingsRes | null>(null);
@@ -68,6 +69,11 @@ export default function SettingsPage() {
           <p className="small" style={{ margin: 0 }}>
             OCR·적요 AI: <strong>{data.ai ? AI_LABEL[data.ai] : "API 키 없음"}</strong>
           </p>
+          {data.models && (
+            <p className="small muted" style={{ margin: "4px 0 0" }}>
+              OCR 모델 <span className="mono">{data.models.ocr}</span> · 적요 모델 <span className="mono">{data.models.memo}</span>
+            </p>
+          )}
         </div>
       )}
     </>

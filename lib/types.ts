@@ -34,8 +34,9 @@ export interface OcrResult {
 export interface Receipt {
   id: string;
   fileName: string;
-  imagePath: string;
+  imagePath: string; // 원본 (이미지 또는 PDF)
   contentType: string;
+  previewPath: string | null; // PDF일 때 화면 표시용 JPEG
   ocr: OcrResult | null;
   ocrError: string | null;
   date: string | null;

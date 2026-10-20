@@ -54,7 +54,9 @@ export async function claudeOcr(base64: string, mediaType: string): Promise<OcrR
     schema: OCR_SCHEMA,
     effort: "medium",
     content: [
-      { type: "image", source: { type: "base64", media_type: mediaType as "image/jpeg", data: base64 } },
+      mediaType === "application/pdf"
+        ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } }
+        : { type: "image", source: { type: "base64", media_type: mediaType as "image/jpeg", data: base64 } },
       { type: "text", text: OCR_USER },
     ],
   });

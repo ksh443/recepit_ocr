@@ -4,7 +4,7 @@ import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { api, errMsg } from "@/components/api";
 import { useRole } from "@/components/AppShell";
-import { useLightbox } from "@/components/ui";
+import { ReceiptScan, useLightbox } from "@/components/ui";
 import { fmtAmount, fmtDateTime } from "@/lib/format";
 import type { Submission } from "@/lib/types";
 
@@ -37,8 +37,6 @@ export default function SubmissionDocPage({ params }: { params: Promise<{ id: st
 
   if (error) return <div className="alert error">{error}</div>;
   if (!s) return <p className="muted">불러오는 중…</p>;
-
-  const img = `/api/receipts/${s.receiptId}/image`;
 
   return (
     <>
@@ -122,8 +120,7 @@ export default function SubmissionDocPage({ params }: { params: Promise<{ id: st
           <div className="small muted" style={{ textAlign: "left", marginBottom: 8 }}>
             5. 영수증 스캔본
           </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={img} alt="영수증 스캔본" onClick={() => lightbox.open(img)} style={{ cursor: "zoom-in" }} />
+          <ReceiptScan receiptId={s.receiptId} isPdf={/\.pdf$/i.test(s.imagePath)} onZoom={lightbox.open} />
         </div>
       </article>
       {lightbox.node}

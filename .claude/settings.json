@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./archive/**)",
+      "Edit(./archive/**)",
+      "Write(./archive/**)",
+      "Read(./us_receipts_ocr.csv)",
+      "Edit(./us_receipts_ocr.csv)",
+      "Write(./us_receipts_ocr.csv)",
+      "Bash(*archive*)",
+      "Bash(*us_receipts_ocr*)",
+      "PowerShell(*archive*)",
+      "PowerShell(*us_receipts_ocr*)"
+    ]
+  }
+}
