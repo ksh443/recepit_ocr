@@ -70,7 +70,8 @@ create table if not exists submissions (
   currency      text,
   memo          text not null,              -- 적요
   image_path    text not null,
-  submitter     text not null,              -- 상신자
+  submitter     text not null,              -- 상신자 이름 (서명란)
+  submitter_rank text,                      -- 상신자 직급
   submitted_at  text not null,              -- 상신 일시
   status        text not null default 'pending',  -- pending / approved
   approver_name text,
@@ -79,6 +80,7 @@ create table if not exists submissions (
 
 -- 이전 버전 스키마를 이미 실행한 경우를 위한 보강
 alter table receipts add column if not exists preview_path text;
+alter table submissions add column if not exists submitter_rank text;
 
 alter table card_transactions_b enable row level security;
 alter table card_transactions_a enable row level security;

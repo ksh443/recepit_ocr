@@ -6,7 +6,7 @@ import { api, errMsg } from "@/components/api";
 import { useRole } from "@/components/AppShell";
 import { ReceiptScan, useLightbox } from "@/components/ui";
 import { fmtAmount, fmtDateTime } from "@/lib/format";
-import type { Submission } from "@/lib/types";
+import { submitterLabel, type Submission } from "@/lib/types";
 
 /** A-③ 결재 상신 문서 상세 */
 export default function SubmissionDocPage({ params }: { params: Promise<{ id: string }> }) {
@@ -60,7 +60,7 @@ export default function SubmissionDocPage({ params }: { params: Promise<{ id: st
             <div>
               상신번호: <strong>{s.docNo}</strong>
             </div>
-            <div>상신자: {s.submitter}</div>
+            <div>상신자: {submitterLabel(s)}</div>
             <div>상신 일시: {s.submittedAt.slice(0, 16)}</div>
           </div>
           {/* 6. 서명란 */}

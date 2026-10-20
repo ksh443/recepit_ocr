@@ -41,6 +41,7 @@ export async function POST(req: Request) {
       memo: r.memo.trim(),
       imagePath: r.imagePath,
       submitter: settings.submitterName,
+      submitterRank: settings.submitterRank || null,
       submittedAt: at,
       status: "pending",
       approverName: null,

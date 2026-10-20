@@ -15,7 +15,7 @@ const AI_LABEL = { claude: "Claude API", gemini: "Google Gemini API (무료 등�
 
 export default function SettingsPage() {
   const [data, setData] = useState<SettingsRes | null>(null);
-  const [form, setForm] = useState<Settings>({ approverName: "", submitterName: "" });
+  const [form, setForm] = useState<Settings>({ approverName: "", submitterName: "", submitterRank: "" });
   const [msg, setMsg] = useState<{ type: "info" | "error"; text: string } | null>(null);
 
   useEffect(() => {
@@ -50,10 +50,20 @@ export default function SettingsPage() {
             상급자 이름 (승인 도장에 표시)
             <input value={form.approverName} onChange={(e) => setForm({ ...form, approverName: e.target.value })} placeholder="○○○ 팀장" />
           </label>
-          <label className="field">
-            상신자 이름
-            <input value={form.submitterName} onChange={(e) => setForm({ ...form, submitterName: e.target.value })} />
-          </label>
+          <div className="row" style={{ alignItems: "flex-end" }}>
+            <label className="field" style={{ width: 120 }}>
+              상신자 직급
+              <input value={form.submitterRank} onChange={(e) => setForm({ ...form, submitterRank: e.target.value })} placeholder="대위" />
+            </label>
+            <label className="field" style={{ flex: 1 }}>
+              상신자 이름 (서명란에 표시)
+              <input value={form.submitterName} onChange={(e) => setForm({ ...form, submitterName: e.target.value })} />
+            </label>
+          </div>
+          <p className="muted small" style={{ margin: 0 }}>
+            결재서에는 &quot;상신자: {[form.submitterRank, form.submitterName].filter(Boolean).join(" ")}&quot;, 서명란에는 &quot;
+            {form.submitterName}&quot;으로 표시됩니다. 바꾼 내용은 이후 상신하는 문서부터 적용됩니다.
+          </p>
           <div className="row">
             <span className="spacer" />
             <button className="btn primary">저장</button>

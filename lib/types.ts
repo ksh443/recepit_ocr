@@ -67,7 +67,8 @@ export interface Submission {
   currency: string | null;
   memo: string;
   imagePath: string;
-  submitter: string;
+  submitter: string; // 상신자 이름 (서명란에 표시)
+  submitterRank: string | null; // 상신자 직급 (예: 대위)
   submittedAt: string;
   status: SubmissionStatus;
   approverName: string | null;
@@ -77,9 +78,15 @@ export interface Submission {
 export interface Settings {
   approverName: string;
   submitterName: string;
+  submitterRank: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   approverName: "○○○ 팀장",
   submitterName: "재정부서 담당자",
+  submitterRank: "",
 };
+
+/** 결재서의 상신자 표기: "대위 권성혜" */
+export const submitterLabel = (s: { submitter: string; submitterRank?: string | null }) =>
+  [s.submitterRank, s.submitter].filter(Boolean).join(" ");

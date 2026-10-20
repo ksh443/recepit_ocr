@@ -53,12 +53,14 @@ export async function cardsWithStatus(): Promise<(CardTxn & { status: CardStatus
 
 export async function getSettings(): Promise<Settings> {
   const store = getStore();
-  const [approverName, submitterName] = await Promise.all([
+  const [approverName, submitterName, submitterRank] = await Promise.all([
     store.getSetting("approver_name"),
     store.getSetting("submitter_name"),
+    store.getSetting("submitter_rank"),
   ]);
   return {
     approverName: approverName || DEFAULT_SETTINGS.approverName,
     submitterName: submitterName || DEFAULT_SETTINGS.submitterName,
+    submitterRank: submitterRank ?? DEFAULT_SETTINGS.submitterRank,
   };
 }
