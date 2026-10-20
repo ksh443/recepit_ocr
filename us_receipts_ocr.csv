@@ -1,0 +1,182 @@
+﻿연도,날짜,시간,가게명,카드번호,비고,파일경로
+2018,2018-07-21,22:11,BART,2825,카드 승인거절(실결제 아님),2018/us/public transport/bart-43253423.pdf
+2018,2018-07-21,22:11,BART,5052,,2018/us/public transport/bart-535245634.pdf
+2018,2018-07-21,22:11,BART,5052,,2018/us/public transport/bart_20180908_004.pdf
+2018,2018-07-21,22:11,BART,2825,카드 승인거절(실결제 아님),2018/us/public transport/bart_20180908_007.pdf
+2018,2018-07-22,14:56,Walgreens,2825,카드번호 셋째 자리 흐림(동일 카드 2825로 판단),2018/us/retail/walgreens-42543523432.pdf
+2018,2018-07-23,10:51,Caltrain,카드(끝3자리 825),카드번호 끝 3자리(825)만 인쇄,2018/us/public transport/caltrain-425345423423.pdf
+2018,2018-07-23,16:04,Safeway,5052,,2018/us/retail/safeway-3208524524.pdf
+2018,2018-07-24,20:22,Sliders Diner,cash,,2018/us/restaurant/sliders-454353423425.pdf
+2018,2018-07-25,17:50,H&M,2825,,2018/us/retail/hm-4352342354.pdf
+2018,2018-11-28,20:37,SW Steakhouse,,"미결제 계산서, 결제정보 없음",2018/us/restaurant/sw_20181208_005.pdf
+2018,2018-11-28,20:37,SW Steakhouse,,"계산서(수기 합계), 결제정보 없음",2018/us/restaurant/sw_20181208_3630.pdf
+2018,2018-11-30,19:48,BeerHaus,5052,,2018/us/restaurant/beerhaus_20181208_006.pdf
+2018,2018-11-30,20:05,BeerHaus,2825,,2018/us/restaurant/beerhaus_20181208_007.pdf
+2018,2018-12-01,12:55,Grand Canyon West,2825,,2018/us/tourist attraction/grandcanyonwest_20181208.pdf
+2018,2018-12-01,19:44,Applebee's,,"시간 일부 흐림(07:44 PM로 판독); 계산서, 결제정보 없음",2018/us/restaurant/applebees_8267120140431.pdf
+2018,2018-12-02,,The Venetian | The Palazzo,5052,"호텔 폴리오, 체크아웃일 기준, 시간 없음",2018/us/hotel/venetian_434280912998.pdf
+2018,2018-12-02,11:44,Shake Shack,2825,,2018/us/restaurant/shakeshack_20181208_004.pdf
+2018,2018-12-02,13:46,Union Cab,2825,,2018/us/taxi/taxi_010E33SD547.pdf
+2019,,,BART,,영수증 아님(BART 승차권 카드 사진),2019/us/public transport/bart-16040508.pdf
+2019,,,,,영수증 아님(BART 승차권 카드 사진),2019/us/public transport/bart-18102616.pdf
+2019,,,BART,,영수증 아님(BART 승차권 카드 사진),2019/us/public transport/bart_64514-18051616.pdf
+2019,2019-04-07,21:04,CVS pharmacy,2825,,2019/us/retail/cvs-20190420_012.pdf
+2019,2019-04-08,11:55,Cowgirl Creamery,카드(번호없음),카드결제이나 카드번호 미인쇄,2019/us/restaurant/cowgirlcreamery-20190420_010.pdf
+2019,2019-04-08,15:53,Whole Foods Market,2825,,2019/us/retail/wholefoods-20190420_004.pdf
+2019,2019-04-08,15:53,Whole Foods Market,2825,,2019/us/retail/wholefoods_500100364.pdf
+2019,2019-04-09,07:38,Denny's,2825,,2019/us/restaurant/dennys-20190420_009.pdf
+2019,2019-04-13,11:26,Roxanne's Cafe,,결제수단 표시 없음,2019/us/restaurant/roxanne-596018.pdf
+2019,2019-04-13,15:37,Old Navy,2825,,2019/us/retail/oldnavy-059343150871201904133755.pdf
+2019,2019-04-13,15:54,UNIQLO,2825,,2019/us/retail/uniqlo-20190420_007.pdf
+2019,2019-04-13,20:28,Super Duper,카드(번호없음),카드결제이나 카드번호 미인쇄,2019/us/restaurant/superduperburger-20190420_008.pdf
+2019,2019-04-13,20:59,Walgreens,5052,,2019/us/retail/walgreens-20190420_006.pdf
+2019,2019-04-14,,Mystic Hotel,5052,"호텔 폴리오, 체크아웃일 기준, 시간 없음",2019/us/hotel/mystic-106247969.pdf
+2019,2019-04-14,10:21,Denny's,2825,,2019/us/restaurant/dennys-20190420_013.pdf
+2019,2019-05-06,17:06,Five Guys,2825,,2019/us/restaurant/fiveguys_aaaxwhncacb5.pdf
+2019,2019-05-06,17:56,Safeway,2825,,2019/us/retail/safeway_40001555198.pdf
+2019,2019-05-07,21:05,Sudam Korean Cuisine,1591,,2019/us/restaurant/sudamkorean_20190507.pdf
+2019,2019-05-08,21:16,Safeway,2825,,2019/us/retail/safeway_85001973167.pdf
+2019,2019-05-09,17:47,Five Guys,2825,,2019/us/restaurant/fiveguys_aaaxwhnjaebm.pdf
+2019,2019-05-10,,Country Inn,5052,"호텔 폴리오, 체크아웃일 기준, 시간 없음",2019/us/hotel/countryinn_30878.pdf
+2019,2019-05-10,09:15,Caltrain,카드(끝3자리 052),카드번호 끝 3자리(052)만 인쇄,2019/us/public transport/caltrain_20190510.pdf
+2019,2019-05-10,19:52,Super Duper,카드(번호없음),카드결제이나 카드번호 미인쇄,2019/us/restaurant/superduper_20451.pdf
+2019,2019-05-10,20:27,Walgreens,2825,,2019/us/retail/walgreens_20190510.pdf
+2019,2019-05-11,08:47,MOZ Cafe,5052,,2019/us/restaurant/moz_208095.pdf
+2019,2019-05-11,18:25,Old Navy,2825,,2019/us/retail/oldnavy_059340204213201905110270.pdf
+2019,2019-05-12,09:29,Roxanne's Cafe,,결제수단 표시 없음,2019/us/restaurant/roxannes_599355.pdf
+2019,2019-05-12,10:20,Starbucks,2825,,2019/us/cafe/starbucks_731564.pdf
+2019,2019-05-12,20:01,Super Duper,카드(번호없음),카드결제이나 카드번호 미인쇄,2019/us/restaurant/superduper_20355.pdf
+2019,2019-05-12,20:29,Walgreens,2825,,2019/us/retail/walgreens_20190512.pdf
+2019,2019-05-13,,Parc 55 San Francisco (Hilton),,"호텔 폴리오, 결제/카드정보 없음, 체크아웃일 기준",2019/us/hotel/hilton_3098434064.pdf
+2019,2019-05-13,11:46,Denny's,2825,월(月) 숫자 잘림(?/13/2019) — 사용자 확인으로 5월 입력,2019/us/restaurant/dennys_318879.pdf
+2019,2019-05-13,11:54,BART,5052,,2019/us/public transport/bart_64514-18051616-2.pdf
+2019,2019-12-01,18:20,Panda Express,8969,,2019/us/restaurant/panda-20191221_004.pdf
+2019,2019-12-02,21:33,In-N-Out Burger,8969,,2019/us/restaurant/inout-20191221_005.pdf
+2019,2019-12-02,22:22,Walgreens,8969,,2019/us/retail/walgreens-20191221_009.pdf
+2019,2019-12-03,21:13,Topgolf,,"잔액 표시만 있음, 결제수단 없음",2019/us/tourist attraction/topgold-20191203.pdf
+2019,2019-12-03,21:54,Fatburger,8969,,2019/us/restaurant/fatburger-20191203.pdf
+2019,2019-12-04,08:56,Denny's,8969,인쇄 흐림(시간·카드번호 판독 주의),2019/us/restaurant/dennys-20191204.pdf
+2019,2019-12-04,21:10,Outback Steakhouse,,"계산서만 있음, 결제정보 없음",2019/us/restaurant/outback-20191204.pdf
+2019,2019-12-06,14:22,Old Navy,8969,,2019/us/retail/oldnavy-20191221_002.pdf
+2019,2019-12-06,20:57,The Cheesecake Factory,,"계산서만 있음, 결제정보 없음",2019/us/restaurant/cheesecake-20191221_003.pdf
+2019,2019-12-07,14:13,Coca-Cola Store,5052,,2019/us/retail/cocacola-20191221_001.pdf
+2019,2019-12-07,15:04,Walgreens,8969,인쇄 흐림(월 첫 자리 12로 판독),2019/us/retail/walgreens-20191207.pdf
+2019,2019-12-08,,The Venetian | The Palazzo,5052,"호텔 폴리오, 체크아웃일 기준, 시간 없음",2019/us/hotel/venetian-437991869934.pdf
+2021,2021-11-24,17:06,Panda Innovation Kitchen,5562,중복 파일(panda_20211211_012.pdf와 동일),2021/us/panda-20211211_012.pdf
+2021,2021-11-24,17:06,Panda Innovation Kitchen,5562,,2021/us/panda_20211211_012.pdf
+2021,2021-11-24,17:38,Whole Foods Market,5562,중복 파일(wholefoods_20211211_011.pdf와 동일),2021/us/wholefoods-20211211_011.pdf
+2021,2021-11-24,17:38,Whole Foods Market,5562,,2021/us/wholefoods_20211211_011.pdf
+2021,2021-11-25,12:08,Pacific Park,카드(번호없음),카드결제이나 카드번호 미인쇄,2021/us/coffeebean-20211211_016.pdf
+2021,2021-11-25,12:08,Pacific Park,카드(번호없음),중복 파일(coffeebean-20211211_016.pdf와 동일); 카드결제이나 카드번호 미인쇄,2021/us/pacificpark_20211211_016.pdf
+2021,2021-11-25,15:28,CVS pharmacy,5562,중복 파일(cvs_20211211_003.pdf와 동일),2021/us/cvs-20211211_003.pdf
+2021,2021-11-25,15:28,CVS pharmacy,5562,,2021/us/cvs_20211211_003.pdf
+2021,2021-11-26,10:19,Old Navy,5562,중복 파일(oldnavy_20211211_007.pdf와 동일),2021/us/oldnavy-20211211_007.pdf
+2021,2021-11-26,10:19,Old Navy,5562,,2021/us/oldnavy_20211211_007.pdf
+2021,2021-11-26,10:35,Ross Dress for Less,5562,중복 파일(ross_20211211_010.pdf와 동일),2021/us/ross-20211211_010.pdf
+2021,2021-11-26,10:35,Ross Dress for Less,5562,,2021/us/ross_20211211_010.pdf
+2021,2021-11-27,09:16,Corner Bakery Cafe,5562,"좌측 잘림으로 ""1/27/2021""만 보임 → 앞자리 1 추정(설문코드 1127 근거)",2021/us/cornerbakery-20211211_017.pdf
+2021,2021-11-27,18:56,Big Boy,,"중복 파일(bigboy_20211211_020.pdf와 동일); 시간 분 자리 흐림(6:56 PM로 판독); 미결제 계산서, 결제정보 없음",2021/us/bigboy-20211211_020.pdf
+2021,2021-11-27,18:56,Big Boy,,"시간 분 자리 흐림(6:56 PM로 판독); 미결제 계산서, 결제정보 없음",2021/us/bigboy_20211211_020.pdf
+2021,2021-11-27,19:41,Whole Foods Market,5562,중복 파일(wholefoods_20211211_005.pdf와 동일),2021/us/wholefoods-20211211_005.pdf
+2021,2021-11-27,19:41,Whole Foods Market,5562,,2021/us/wholefoods_20211211_005.pdf
+2021,2021-11-28,09:00,Panera Bread,5562,,2021/us/panera-20211211_017.pdf
+2021,2021-11-28,09:00,Panera Bread,5562,중복 파일(panera-20211211_017.pdf와 동일),2021/us/panerabread_20211211_017.pdf
+2021,2021-11-28,10:36,Old Navy,5562,중복 파일(oldnavy_20211211_015.pdf와 동일),2021/us/oldnavy-20211211_015.pdf
+2021,2021-11-28,10:36,Old Navy,5562,,2021/us/oldnavy_20211211_015.pdf
+2021,2021-11-28,20:28,CVS pharmacy,5562,중복 파일(cvs_20211211_009.pdf와 동일),2021/us/cvs-20211211_009.pdf
+2021,2021-11-28,20:28,CVS pharmacy,5562,,2021/us/cvs_20211211_009.pdf
+2021,2021-11-29,08:51,Snacks,5562,중복 파일(snacks_20211211_019.pdf와 동일),2021/us/snacks-20211211_019.pdf
+2021,2021-11-29,08:51,Snacks,5562,,2021/us/snacks_20211211_019.pdf
+2021,2021-11-29,18:10,Shake Shack,5562,중복 파일(shakeshack_20211211.pdf와 동일),2021/us/shakeshack-20211211.pdf
+2021,2021-11-29,18:10,Shake Shack,5562,,2021/us/shakeshack_20211211.pdf
+2021,2021-11-30,21:21,In-N-Out Burger,5562,중복 파일(inout_20211211_001.pdf와 동일),2021/us/inout-20211211_001.pdf
+2021,2021-11-30,21:21,In-N-Out Burger,5562,,2021/us/inout_20211211_001.pdf
+2021,2021-12-01,09:35,Snacks,5562,중복 파일(snacks_20211211_002.pdf와 동일),2021/us/snacks-20211211_002.pdf
+2021,2021-12-01,09:35,Snacks,5562,,2021/us/snacks_20211211_002.pdf
+2021,2021-12-01,21:36,CVS pharmacy,5562,중복 파일(cvs_20211211_004.pdf와 동일),2021/us/cvs-20211211_004.pdf
+2021,2021-12-01,21:36,CVS pharmacy,5562,,2021/us/cvs_20211211_004.pdf
+2021,2021-12-02,,MGM Resorts,5052,"중복 파일(mgm_895557014.pdf와 동일); 호텔 폴리오(MGM, 업장명 미인쇄); 카드결제 $200, 나머지는 디파짓",2021/us/hotel/mgm_895557014.pdf
+2021,2021-12-02,,MGM Resorts,5052,"호텔 폴리오(MGM, 업장명 미인쇄); 카드결제 $200, 나머지는 디파짓",2021/us/mgm_895557014.pdf
+2021,2021-12-02,15:28,Old Navy,5562,중복 파일(oldnavy_20211211_008.pdf와 동일),2021/us/oldnavy-20211211_008.pdf
+2021,2021-12-02,15:28,Old Navy,5562,,2021/us/oldnavy_20211211_008.pdf
+2021,2021-12-02,15:38,Five Guys,5562,중복 파일(fiveguys_20211211_018.pdf와 동일),2021/us/fiveguys-20211211_018.pdf
+2021,2021-12-02,15:38,Five Guys,5562,,2021/us/fiveguys_20211211_018.pdf
+2021,2021-12-02,20:35,Best Buy,5562,중복 파일(bestbuy_20211211_006.pdf와 동일),2021/us/bestbuy-20211211_006.pdf
+2021,2021-12-02,20:35,Best Buy,5562,,2021/us/bestbuy_20211211_006.pdf
+2021,2021-12-02,20:36,Best Buy,5562,중복 파일(bestbuy_20211211_013.pdf와 동일),2021/us/bestbuy-20211211_013.pdf
+2021,2021-12-02,20:36,Best Buy,5562,,2021/us/bestbuy_20211211_013.pdf
+2022,2022-09-21,11:06,Amtrak,2961,열차 승차권 구매 영수증,2022/us/amtrak_20221016.pdf
+2022,2022-09-21,20:07,Portillo's,5562,,2022/us/portillos_20221016_008.pdf
+2022,2022-09-21,20:46,Shake Shack,4528,,2022/us/shakeshack_20221016_007.pdf
+2022,2022-09-22,12:37,Potbelly Sandwich Shop,4528,,2022/us/potbelly_20221016_009.pdf
+2022,2022-09-22,20:50,Hyatt Regency St. Louis at the Arch Brewhouse,,"계산서만 있음, 결제정보 없음",2022/us/hyattbrewhouse_20221016_002.pdf
+2022,2022-09-23,19:17,White Castle,카드(번호없음),카드결제이나 카드번호 미인쇄,2022/us/whitecastle_20221016_010.pdf
+2022,2022-09-24,09:04,Chris' @ the Docket,5562,,2022/us/chris_20221016_012.pdf
+2022,2022-09-24,18:39,Five Guys,4528,,2022/us/fiveguys_20221016_011.pdf
+2022,2022-09-24,19:20,Schnucks,4528,,2022/us/schnucks_20221016_011.pdf
+2022,2022-09-25,19:50,Hyatt Regency St. Louis at the Arch Brewhouse,,"미결제 계산서, 결제정보 없음",2022/us/hyattbrewhouse_20221016_006.pdf
+2022,2022-09-26,11:34,Chris' @ the Docket,5562,,2022/us/chris_20221008.pdf
+2022,2022-09-27,13:29,Old Navy,4528,,2022/us/oldnavy_20221016_015.pdf
+2022,2022-09-27,13:48,Whole Foods Market,4528,,2022/us/wholefoods_20221016_013.pdf
+2022,2022-09-27,19:17,Portillo's,5562,,2022/us/portillos_20221016_014.pdf
+2022,2022-09-28,11:13,Tous les Jours,4528,,2022/us/touslesjours_20221016_003.pdf
+2022,2022-09-28,16:09,Walgreens,5562,,2022/us/walgreens_20221016_003.pdf
+2022,2022-09-28,20:27,Whole Foods Market,4528,,2022/us/wholefoods_20221016_004.pdf
+2022,2022-09-28,20:41,Chick-fil-A,4528,,2022/us/chickfila_20221016_005.pdf
+2022,2022-09-29,10:05,Starbucks,4528,,2022/us/starbucks_20221016_017.pdf
+2022,2022-09-29,14:42,Giordano's,,"계산서만 있음, 결제정보 없음",2022/us/giordanos_20221016_016.pdf
+2022,2022-09-29,14:48,Giordano's,5562,선승인 전표(팁·최종합계 공란),2022/us/giordanos_20221016_015.pdf
+2022,2022-09-30,09:31,Stan's Donuts,4528,,2022/us/stans_20221210.pdf
+2022,2022-11-25,17:33,Shake Shack,4702,,2022/us/shakeshack_20221210_009.pdf
+2022,2022-11-25,18:21,TAP,,"계산서만 있음, 결제정보 없음",2022/us/tap_20221210_011.pdf
+2022,2022-11-26,07:56,Snacks,4702,AM/PM 표기 없음(24시간제로 판단),2022/us/snacks_20221210_004.pdf
+2022,2022-11-26,16:42,,4702,가맹점명 미인쇄(품목명상 Allegiant Stadium 추정),2022/us/allegiant_20221210_014.pdf
+2022,2022-11-27,10:25,Denny's,4702,,2022/us/dennys_20221210_002.pdf
+2022,2022-11-27,18:49,Outback Steakhouse,,"계산서만 있음, 결제정보 없음",2022/us/outback_20221210_012.pdf
+2022,2022-11-28,21:15,Walgreens,4702,,2022/us/walgreens_20221210_010.pdf
+2022,2022-11-28,21:27,In-N-Out Burger,4702,,2022/us/inout_20221210_005.pdf
+2022,2022-11-29,17:17,Walmart,5562,,2022/us/walmart_20221228.pdf
+2022,2022-11-29,18:12,Panda Express,4702,,2022/us/pandaexpress_20221210_016.pdf
+2022,2022-11-30,10:55,Snacks,4702,,2022/us/snacks_20221210_015.pdf
+2022,2022-11-30,21:42,Giordano's,,"계산서만 있음, 결제정보 없음",2022/us/giordano_20221210_003.pdf
+2022,2022-12-01,19:29,Wynn/Encore SW Steakhouse,,"미결제 계산서, 결제정보 없음",2022/us/wynnsw_20221210_011.pdf
+2022,2022-12-02,09:15,Snacks,4702,AM/PM 표기 없음(아침 메뉴로 오전 판단),2022/us/snacks_20221210_001.pdf
+2022,2022-12-02,13:23,Starbucks,4702,,2022/us/starbucks_20221210_008.pdf
+2023,2023-08-27,17:35,Walgreens,4702,,2023/us/walgreens_20231005_010.pdf
+2023,2023-08-28,06:23,Moz Cafe,4702,,2023/us/moz_20231005.pdf
+2023,2023-08-28,14:45,Chowder Hut,4702,,2023/us/chowderhut_20231005_011.pdf
+2023,2023-08-29,07:34,Cafe Mason,,"미결제 재출력 계산서, 결제정보 없음",2023/us/cafemason_20231005_009.pdf
+2023,2023-08-30,07:02,Moz Cafe,4702,,2023/us/moz_20231005_001.pdf
+2023,2023-08-30,20:01,California Pizza Kitchen,2961,카드 전표(팁·최종합계 공란),2023/us/pizzakitchen_20231005_005.pdf
+2023,2023-08-30,20:18,Walgreens,4702,,2023/us/walgreens_20231005_002.pdf
+2023,2023-08-31,,City Rent-A-Car,2961,"렌터카 계약서(영수증 아님); 승인일 기준, 승인시각 없음",2023/us/citycar_19830107_Payments.pdf
+2023,2023-09-01,11:38,Henry Cowell Redwoods SP,2961,,2023/us/redwood_20231005_007.pdf
+2023,2023-09-01,16:56,Trader Joe's,4702,,2023/us/traderjoes_20230905.pdf
+2023,2023-09-01,18:54,Old Navy,4702,,2023/us/oldnavy_20231003.pdf
+2023,2023-09-01,20:02,Celias Mexican Rest.,,"계산서만 있음, 결제정보 없음",2023/us/celias_20231005_006.pdf
+2023,2023-09-01,21:05,Shell,2961,,2023/us/shell_20231005_003.pdf
+2023,2023-09-02,,Parc 55 San Francisco (Hilton),4702,"호텔 폴리오, 체크아웃일 기준, 시간 없음",2023/us/hilton_20230829.pdf
+2023,2023-11-26,15:43,Yellow Checker Star,5562,,2023/us/yellow_20231209_008.pdf
+2023,2023-11-26,18:13,Jimmy Buffett's Margaritaville,,"미결제 계산서(잔액 표시), 결제정보 없음",2023/us/jimmy_20231209_009.pdf
+2023,2023-11-27,06:41,Snacks,0908,AM/PM 표기 없음(24시간제로 판단),2023/us/snacks_20231209.pdf
+2023,2023-11-27,21:16,In-N-Out Burger,0908,,2023/us/inout_20231209_003.pdf
+2023,2023-11-27,22:20,CVS pharmacy,0908,,2023/us/cvs_20231209_006.pdf
+2023,2023-11-28,10:22,Denny's,5562,,2023/us/dennys_20231209_004.pdf
+2023,2023-11-28,19:06,Shake Shack,0908,,2023/us/shakeshack_20231209_002.pdf
+2023,2023-11-28,20:35,BeerHaus,2961,"월 숫자 일부 가려짐(11월로 판독), 카드번호 약간 번짐",2023/us/beerhouse_20231209_005.pdf
+2023,2023-11-30,13:55,Panda Express,0908,,2023/us/panda_20231209_007.pdf
+2023,2023-12-01,07:35,Snacks,0908,,2023/us/snacks_20231209_013.pdf
+2023,2023-12-01,15:08,Topgolf,2961,,2023/us/topgolf_20231209_011.pdf
+2023,2023-12-01,17:48,Wynn/Encore SW Steakhouse,,"미결제 계산서, 결제정보 없음",2023/us/wynn_20231209_014.pdf
+2023,2023-12-02,09:30,Snacks,0908,,2023/us/snacks_20231209_016.pdf
+2023,2023-12-02,13:22,Cafe Gelato,0908,일(日) 숫자 흐림(2일로 판독),2023/us/gelato_20231209_015.pdf
+2023,2023-12-02,15:48,Subway,0908,,2023/us/subway_20231209_012.pdf
+2023,2023-12-03,09:09,Grand Lux Cafe,,"계산서만 있음, 결제정보 없음",2023/us/grandlux_20231209_018.pdf
+2023,2023-12-03,10:47,Starbucks,0908,,2023/us/starbucks_20231209_017.pdf
+2024,2024-05-18,18:00,Whole Foods Market,0908,,2024/us/wholefood_20240528_003.pdf
+2024,2024-05-20,18:40,The Cheesecake Factory,,"결제 전 계산서, 결제정보 없음",2024/us/cheesecakefactory_20240528_003.pdf
+2024,2024-05-22,19:07,Whole Foods Market,0908,,2024/us/wholefoods_20240528_002.pdf
+2024,2024-05-24,08:15,McDonald's,0908,,2024/us/mcdonald_20240529.pdf
+2024,2024-05-24,09:23,Space Needle,2961,인쇄 흐림,2024/us/spaceneedle_20240528_005.pdf
+2024,2024-05-24,16:38,Old Navy,0908,,2024/us/oldnavy_20240528_006.pdf
+2024,2024-05-25,11:31,Lucky Louie Fish Shack,0908,,2024/us/luckylouie_20240529_001.pdf
