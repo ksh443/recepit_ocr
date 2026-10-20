@@ -23,6 +23,12 @@ export function thisMonthRange(): { from: string; to: string } {
   return { from: today.slice(0, 8) + "01", to: today };
 }
 
+/** 서명란 날짜: "2026-10-20 ..." → "'26. 10. 20." */
+export function signDate(dt: string | null | undefined): string {
+  const m = dt?.match(/^\d{2}(\d{2})-(\d{2})-(\d{2})/);
+  return m ? `'${m[1]}. ${Number(m[2])}. ${Number(m[3])}.` : "";
+}
+
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 export function weekday(date: string | null): string {
   if (!date) return "";

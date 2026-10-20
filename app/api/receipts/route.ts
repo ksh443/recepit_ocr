@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { getStore } from "@/lib/store";
 import { ocrReceipt } from "@/lib/ai";
 import { nowKst } from "@/lib/format";
-import { computeMatch, fail, ok } from "@/lib/service";
+import { computeMatch, fail, getSettings, ok } from "@/lib/service";
 import type { OcrResult, Receipt } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -17,9 +17,16 @@ const TYPES: Record<string, string> = {
 };
 const MAX_BYTES = 4 * 1024 * 1024; // Vercel 요청 크기 한도(4.5MB) 안쪽
 
-export async function GET() {
+/** ?uploaderId= 가 있으면 그 계정이 올린 영수증만 (예전 영수증은 기본 담당자 것으로 본다) */
+export async function GET(req: Request) {
   try {
-    return ok({ receipts: await getStore().listReceipts() });
+    const uploaderId = new URL(req.url).searchParams.get("uploaderId");
+    let receipts = await getStore().listReceipts();
+    if (uploaderId) {
+      const { defaultDrafterId } = await getSettings();
+      receipts = receipts.filter((r) => (r.uploaderId ?? defaultDrafterId) === uploaderId);
+    }
+    return ok({ receipts });
   } catch (e) {
     return fail(e);
   }
@@ -80,6 +87,7 @@ export async function POST(req: Request) {
       memoNote: "",
       memoAlternatives: [],
       submissionId: null,
+      uploaderId: String(form.get("uploaderId") || "") || null,
       createdAt: nowKst(),
     };
     await store.insertReceipt(receipt);

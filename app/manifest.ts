@@ -20,7 +20,7 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       { name: "영수증 올리기", url: "/receipts", icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }] },
-      { name: "상신 목록", url: "/submissions", icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }] },
+      { name: "결재 현황", url: "/submissions", icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }] },
     ],
   };
 }

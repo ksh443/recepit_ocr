@@ -3,15 +3,17 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, errMsg } from "@/components/api";
-import { useRole } from "@/components/AppShell";
+import { useActor } from "@/components/AppShell";
 import { fmtAmount, fmtDateTime } from "@/lib/format";
-import type { Submission } from "@/lib/types";
+import { DOC_TAB_LABEL, isMyTurn, matchesTab, personLabel, progressLabel, type DocTab, type Submission } from "@/lib/types";
 
-/** A-③ 결재 상신 목록 */
+const TABS: DocTab[] = ["all", "todo", "progress", "done"];
+
+/** A-③ 결재 현황 */
 export default function SubmissionsPage() {
-  const role = useRole();
+  const actor = useActor();
   const [list, setList] = useState<Submission[] | null>(null);
-  const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
+  const [tab, setTab] = useState<DocTab>("all");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -20,20 +22,25 @@ export default function SubmissionsPage() {
       .catch((e) => setError(errMsg(e)));
   }, []);
 
-  const shown = (list ?? []).filter((s) => filter === "all" || s.status === filter);
-  const pending = (list ?? []).filter((s) => s.status === "pending").length;
+  // 선택한 계정이 결재선(담당·검토·결재·대결)에 든 문서만
+  const who = actor;
+  const tabs = TABS;
+  const count = (t: DocTab) => (list ?? []).filter((s) => matchesTab(s, t, who)).length;
+  const shown = (list ?? []).filter((s) => matchesTab(s, tab, who));
 
   return (
     <>
       <div className="page-head">
         <div>
-          <h1>{role === "supervisor" ? "결재할 문서" : "결재 상신 목록"}</h1>
-          <p className="muted small">승인 대기 {pending}건</p>
+          <h1>결재 현황</h1>
+          <p className="muted small">
+            {who ? `${personLabel(who)} 계정 · 처리할 문서 ${count("todo")}건` : `결재 진행 중 ${count("progress")}건`}
+          </p>
         </div>
         <div className="chips">
-          {(["all", "pending", "approved"] as const).map((f) => (
-            <button key={f} className={`chip ${filter === f ? "on" : ""}`} onClick={() => setFilter(f)}>
-              {f === "all" ? "전체" : f === "pending" ? "승인 대기" : "승인 완료"}
+          {tabs.map((t) => (
+            <button key={t} className={`chip ${tab === t ? "on" : ""}`} onClick={() => setTab(t)}>
+              {DOC_TAB_LABEL[t]} {list ? count(t) : ""}
             </button>
           ))}
         </div>
@@ -62,7 +69,7 @@ export default function SubmissionsPage() {
             ) : shown.length === 0 ? (
               <tr>
                 <td colSpan={7} className="empty">
-                  상신된 문서가 없습니다.
+                  {tab === "todo" ? "지금 처리할 문서가 없습니다." : "해당하는 문서가 없습니다."}
                 </td>
               </tr>
             ) : (
@@ -76,10 +83,11 @@ export default function SubmissionsPage() {
                   <td className="num">{fmtAmount(s.amount, s.currency)}</td>
                   <td>{s.memo}</td>
                   <td className="nowrap hide-sm">{s.submittedAt.slice(0, 16)}</td>
-                  <td>
+                  <td className="nowrap">
                     <Link href={`/submissions/${s.id}`}>
-                      <span className={`badge ${s.status}`}>{s.status === "approved" ? "승인 완료" : "승인 대기"}</span>
+                      <span className={`badge ${s.status}`}>{progressLabel(s)}</span>
                     </Link>
+                    {who && isMyTurn(s, who) && <span className="badge need" style={{ marginLeft: 4 }}>내 차례</span>}
                   </td>
                 </tr>
               ))

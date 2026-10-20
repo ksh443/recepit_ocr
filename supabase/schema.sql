@@ -73,14 +73,19 @@ create table if not exists submissions (
   submitter     text not null,              -- 상신자 이름 (서명란)
   submitter_rank text,                      -- 상신자 직급
   submitted_at  text not null,              -- 상신 일시
-  status        text not null default 'pending',  -- pending / approved
-  approver_name text,
-  approved_at   text
+  status        text not null default 'pending',  -- pending / approved (결재선 마지막 서명 후)
+  approver_name text,                       -- 최종 결재 서명 표기 (대결이면 '代 소령 ○○○')
+  approved_at   text,
+  approval_line jsonb                       -- 결재선 [{role: drafter/review/final, rank, name, proxy, signedAt}]
 );
 
 -- 이전 버전 스키마를 이미 실행한 경우를 위한 보강
 alter table receipts add column if not exists preview_path text;
 alter table submissions add column if not exists submitter_rank text;
+alter table submissions add column if not exists approval_line jsonb;
+alter table submissions add column if not exists previous_submission_id uuid;
+alter table submissions add column if not exists previous_doc_no text;
+alter table receipts add column if not exists uploader_id text;
 
 alter table card_transactions_b enable row level security;
 alter table card_transactions_a enable row level security;
@@ -93,7 +98,5 @@ insert into storage.buckets (id, name, public)
 values ('receipts', 'receipts', false)
 on conflict (id) do nothing;
 
-insert into settings (key, value) values
-  ('approver_name', '○○○ 팀장'),
-  ('submitter_name', '재정부서 담당자')
-on conflict (key) do nothing;
+-- 설정(조직도 org_chart, 결재선 기본 담당자 default_drafter_id)은 비어 있으면 앱의 기본 조직도를 쓰고,
+-- 웹앱 설정 화면에서 저장하면 이 표에 들어간다.

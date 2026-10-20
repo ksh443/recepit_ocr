@@ -1,6 +1,6 @@
 import { getStore } from "@/lib/store";
 import { writeMemo } from "@/lib/ai";
-import { fail, ok } from "@/lib/service";
+import { fail, ok, receiptLocked } from "@/lib/service";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -12,7 +12,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const store = getStore();
     const r = await store.getReceipt(id);
     if (!r) return fail(new Error("영수증을 찾을 수 없습니다."), 404);
-    if (r.submissionId) return fail(new Error("이미 상신된 영수증입니다."), 409);
+    if (await receiptLocked(r)) return fail(new Error("결재가 진행 중이거나 끝난 영수증입니다."), 409);
 
     const [cards, receipts] = await Promise.all([store.aList(), store.listReceipts()]);
     const card = cards.find((c) => c.approvalNo === r.approvalNo);

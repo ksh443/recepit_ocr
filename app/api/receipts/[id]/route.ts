@@ -1,7 +1,7 @@
 import { getStore } from "@/lib/store";
 import { statusAgainst } from "@/lib/match";
 import { normalizeDateTime, parseAmount } from "@/lib/csv";
-import { computeMatch, fail, ok } from "@/lib/service";
+import { computeMatch, fail, ok, receiptLocked } from "@/lib/service";
 import type { Receipt } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -33,8 +33,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
     const store = getStore();
     const r = await store.getReceipt(id);
     if (!r) return fail(new Error("영수증을 찾을 수 없습니다."), 404);
-    if (r.submissionId && (body.fields || body.approvalNo !== undefined || body.applyCard))
-      return fail(new Error("이미 상신된 영수증은 수정할 수 없습니다."), 409);
+    if (await receiptLocked(r)) return fail(new Error("결재가 진행 중이거나 끝난 영수증은 수정할 수 없습니다."), 409);
 
     const next: Receipt = { ...r };
     if (body.fields) {

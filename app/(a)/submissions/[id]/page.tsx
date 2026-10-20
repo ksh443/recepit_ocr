@@ -3,15 +3,26 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { api, errMsg } from "@/components/api";
-import { useRole } from "@/components/AppShell";
+import { useActor } from "@/components/AppShell";
 import { ReceiptScan, useLightbox } from "@/components/ui";
-import { fmtAmount, fmtDateTime } from "@/lib/format";
-import { submitterLabel, type Submission } from "@/lib/types";
+import { fmtAmount, fmtDateTime, signDate } from "@/lib/format";
+import {
+  ROLE_LABEL,
+  isMyTurn,
+  lineOf,
+  nextStepIndex,
+  personLabel,
+  progressLabel,
+  signerLabel,
+  signerOf,
+  submitterLabel,
+  type Submission,
+} from "@/lib/types";
 
 /** A-③ 결재 상신 문서 상세 */
 export default function SubmissionDocPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const role = useRole();
+  const actor = useActor();
   const [s, setS] = useState<Submission | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -23,35 +34,82 @@ export default function SubmissionDocPage({ params }: { params: Promise<{ id: st
       .catch((e) => setError(errMsg(e)));
   }, [id]);
 
-  const approve = async () => {
+  const [rejecting, setRejecting] = useState(false);
+  const [reason, setReason] = useState("");
+
+  const sign = async (decision: "approve" | "reject") => {
+    if (!actor) return;
     setBusy(true);
+    setActionError("");
     try {
-      const r = await api<{ submission: Submission }>(`/api/submissions/${id}/approve`, { method: "POST" });
+      const r = await api<{ submission: Submission }>(`/api/submissions/${id}/approve`, {
+        method: "POST",
+        json: { actor: { rank: actor.rank, name: actor.name }, decision, comment: decision === "reject" ? reason : undefined },
+      });
       setS(r.submission);
+      setRejecting(false);
     } catch (e) {
-      setError(errMsg(e));
+      setActionError(errMsg(e));
     } finally {
       setBusy(false);
     }
   };
+  const [actionError, setActionError] = useState("");
 
   if (error) return <div className="alert error">{error}</div>;
   if (!s) return <p className="muted">불러오는 중…</p>;
+
+  const line = lineOf(s);
+  const next = nextStepIndex(line);
+  const nextStep = next >= 0 ? line[next] : null;
+  const myTurn = Boolean(actor && isMyTurn(s, actor));
+  const rejected = line.find((st) => st.result === "rejected");
 
   return (
     <>
       <div className="row" style={{ marginBottom: 16, maxWidth: 760, marginInline: "auto" }}>
         <Link href="/submissions" className="btn sm">
-          ← 목록
+          ← 결재 현황
         </Link>
         <span className="spacer" />
-        <span className={`badge ${s.status}`}>{s.status === "approved" ? "승인 완료" : "승인 대기"}</span>
-        {role === "supervisor" && s.status === "pending" && (
-          <button className="btn stamp" onClick={approve} disabled={busy}>
-            {busy ? "승인 중…" : "승인"}
-          </button>
+        <span className={`badge ${s.status}`}>{progressLabel(s)}</span>
+        {myTurn && !rejecting && (
+          <>
+            <button className="btn" onClick={() => setRejecting(true)} disabled={busy}>
+              반려
+            </button>
+            <button className="btn stamp" onClick={() => sign("approve")} disabled={busy}>
+              {busy ? "처리 중…" : nextStep?.proxy ? "대결 승인" : "승인"}
+            </button>
+          </>
+        )}
+        {actor && nextStep && !myTurn && (
+          <span className="muted small">지금은 {signerLabel(nextStep)}의 차례입니다.</span>
         )}
       </div>
+
+      {rejecting && (
+        <div className="card" style={{ maxWidth: 760, margin: "0 auto 16px" }}>
+          <label className="field">
+            반려 사유
+            <textarea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="예: 적요에 행사명을 구체적으로 적어 주세요." autoFocus />
+          </label>
+          <div className="row" style={{ marginTop: 8 }}>
+            <span className="spacer" />
+            <button className="btn" onClick={() => setRejecting(false)} disabled={busy}>
+              취소
+            </button>
+            <button className="btn primary" onClick={() => sign("reject")} disabled={busy || !reason.trim()}>
+              반려하기
+            </button>
+          </div>
+        </div>
+      )}
+      {actionError && (
+        <div className="alert error" style={{ maxWidth: 760, margin: "0 auto 16px" }}>
+          {actionError}
+        </div>
+      )}
 
       <article className="doc">
         <div className="doc-title">지출원인행위 결재</div>
@@ -62,36 +120,58 @@ export default function SubmissionDocPage({ params }: { params: Promise<{ id: st
             </div>
             <div>상신자: {submitterLabel(s)}</div>
             <div>상신 일시: {s.submittedAt.slice(0, 16)}</div>
+            {s.previousDocNo && (
+              <div>
+                재상신 (이전:{" "}
+                {s.previousSubmissionId ? <Link href={`/submissions/${s.previousSubmissionId}`}>{s.previousDocNo}</Link> : s.previousDocNo})
+              </div>
+            )}
           </div>
-          {/* 6. 서명란 */}
+          {/* 6. 서명란: 결재선대로 담당 / 검토 / 결재 */}
           <table className="sign-table" aria-label="서명란">
             <thead>
               <tr>
-                <th>담당</th>
-                <th>상급자</th>
+                {line.map((st, i) => (
+                  <th key={i}>{ROLE_LABEL[st.role]}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>
-                  <div style={{ fontWeight: 700 }}>{s.submitter}</div>
-                  <div className="sign-name">{s.submittedAt.slice(5, 10).replace("-", ".")} 상신</div>
-                </td>
-                <td>
-                  {s.status === "approved" ? (
-                    <span className="stamp" title={`${s.approverName} ${s.approvedAt}`}>
-                      <span className="stamp-mark">승인</span>
-                      <span>{s.approverName}</span>
-                      <span className="stamp-date">{s.approvedAt?.slice(0, 10).replace(/-/g, ".")}</span>
-                    </span>
-                  ) : (
-                    <span className="sign-name">&nbsp;</span>
-                  )}
-                </td>
+                {line.map((st, i) => (
+                  <td key={i} className="sign-cell">
+                    {/* 대결이면 "代"는 도장 밖, 칸 왼쪽 위 */}
+                    {st.proxy && st.signedAt && <span className="proxy-mark">代</span>}
+                    {st.role === "drafter" ? (
+                      <>
+                        <div className="sign-person">{personLabel(st)}</div>
+                        <div className="sign-name">{signDate(st.signedAt)}</div>
+                      </>
+                    ) : st.signedAt ? (
+                      <span
+                        className={`stamp ${st.result === "rejected" ? "reject" : ""}`}
+                        title={`${signerLabel(st)} ${st.signedAt}${st.proxy ? ` (원결재자 ${personLabel(st)})` : ""}`}
+                      >
+                        <span className="stamp-mark">{st.result === "rejected" ? "반려" : "승인"}</span>
+                        <span className="stamp-person">{personLabel(signerOf(st))}</span>
+                        <span className="stamp-date">{signDate(st.signedAt)}</span>
+                      </span>
+                    ) : (
+                      <span className="sign-name">&nbsp;</span>
+                    )}
+                  </td>
+                ))}
               </tr>
             </tbody>
           </table>
         </div>
+
+        {rejected && (
+          <div className="alert info" style={{ marginBottom: 12 }}>
+            <strong>반려</strong> · {signerLabel(rejected)} · {signDate(rejected.signedAt)}
+            <div>사유: {rejected.comment}</div>
+          </div>
+        )}
 
         <table className="doc-table">
           <tbody>

@@ -6,8 +6,20 @@ import { useRouter } from "next/navigation";
 import { api, errMsg } from "@/components/api";
 import { ReceiptScan, StatusBadge, useLightbox } from "@/components/ui";
 import { renderPdfPreview } from "@/components/pdf";
-import { fmtAmount, fmtDateTime } from "@/lib/format";
-import type { CardTxn, Receipt } from "@/lib/types";
+import ApprovalLinePicker from "@/components/ApprovalLinePicker";
+import { fmtAmount, fmtDateTime, signDate } from "@/lib/format";
+import {
+  APPROVAL_STATE_LABEL,
+  approvalState,
+  lineOf,
+  signerLabel,
+  type CardTxn,
+  type LineSelection,
+  type OrgMember,
+  type Receipt,
+  type Submission,
+} from "@/lib/types";
+import { useActor } from "@/components/AppShell";
 
 const isPdf = (f: File) => f.type === "application/pdf" || /\.pdf$/i.test(f.name);
 const ACCEPTED = (f: File) => f.type.startsWith("image/") || isPdf(f);
@@ -42,8 +54,10 @@ async function prepareImage(file: File): Promise<Blob> {
 
 /** A-② 영수증 업로드·OCR·대조 */
 export default function ReceiptsPage() {
+  const actor = useActor();
   const [receipts, setReceipts] = useState<Receipt[] | null>(null);
   const [cards, setCards] = useState<CardTxn[]>([]);
+  const [subs, setSubs] = useState<Map<string, Submission>>(new Map());
   const [queue, setQueue] = useState<{ done: number; total: number; current: string } | null>(null);
   const [error, setError] = useState("");
   const [showAll, setShowAll] = useState(false);
@@ -52,18 +66,22 @@ export default function ReceiptsPage() {
   const camRef = useRef<HTMLInputElement>(null);
   const lightbox = useLightbox();
 
+  // 선택한 계정이 올린 영수증만
   const load = useCallback(async () => {
+    if (!actor) return;
     try {
-      const [r, c] = await Promise.all([
-        api<{ receipts: Receipt[] }>("/api/receipts"),
+      const [r, c, s] = await Promise.all([
+        api<{ receipts: Receipt[] }>(`/api/receipts?uploaderId=${encodeURIComponent(actor.id)}`),
         api<{ cards: CardTxn[] }>("/api/cards"),
+        api<{ submissions: Submission[] }>("/api/submissions"),
       ]);
       setReceipts(r.receipts);
       setCards(c.cards);
+      setSubs(new Map(s.submissions.map((x) => [x.id, x])));
     } catch (e) {
       setError(errMsg(e));
     }
-  }, []);
+  }, [actor]);
 
   useEffect(() => {
     load();
@@ -98,6 +116,7 @@ export default function ReceiptsPage() {
         body.append("file", prepared.file, f.name);
         if (prepared.preview) body.append("preview", prepared.preview, "preview.jpg");
         body.append("fileName", f.name);
+        if (actor) body.append("uploaderId", actor.id);
         const { receipt } = await api<{ receipt: Receipt }>("/api/receipts", { method: "POST", body });
         setReceipts((list) => [receipt, ...(list ?? [])]);
         // 확인이 끝난(✅) 건은 적요를 바로 작성
@@ -114,8 +133,10 @@ export default function ReceiptsPage() {
   };
 
   const cardMap = useMemo(() => new Map(cards.map((c) => [c.approvalNo, c])), [cards]);
-  const list = (receipts ?? []).filter((r) => showAll || !r.submissionId);
-  const pendingCount = (receipts ?? []).filter((r) => !r.submissionId).length;
+  // 처리할 영수증 = 아직 상신 안 했거나, 상신했는데 반려된 것 (재상신 대상)
+  const isOpen = (r: Receipt) => !r.submissionId || subs.get(r.submissionId)?.status === "rejected";
+  const list = (receipts ?? []).filter((r) => showAll || isOpen(r));
+  const pendingCount = (receipts ?? []).filter(isOpen).length;
 
   return (
     <>
@@ -223,6 +244,8 @@ export default function ReceiptsPage() {
             <ReceiptCard
               key={r.id}
               receipt={r}
+              submission={r.submissionId ? subs.get(r.submissionId) : undefined}
+              drafter={actor}
               cards={cards}
               cardMap={cardMap}
               onChange={replace}
@@ -250,6 +273,8 @@ const toFields = (r: Receipt): Fields => ({
 
 function ReceiptCard({
   receipt: r,
+  submission,
+  drafter,
   cards,
   cardMap,
   onChange,
@@ -257,6 +282,8 @@ function ReceiptCard({
   onZoom,
 }: {
   receipt: Receipt;
+  submission: Submission | undefined;
+  drafter: OrgMember | null;
   cards: CardTxn[];
   cardMap: Map<string, CardTxn>;
   onChange: (r: Receipt) => void;
@@ -277,7 +304,10 @@ function ReceiptCard({
     setPick(r.approvalNo ?? r.candidates[0] ?? "");
   }, [r]);
 
-  const locked = Boolean(r.submissionId);
+  // 반려된 영수증은 다시 고쳐서 재상신할 수 있다
+  const rejected = submission?.status === "rejected";
+  const locked = Boolean(r.submissionId) && !rejected;
+  const rejectStep = rejected ? lineOf(submission!).find((st) => st.result === "rejected") : undefined;
   const dirty = JSON.stringify(f) !== JSON.stringify(toFields(r));
   const card = r.approvalNo ? cardMap.get(r.approvalNo) : undefined;
   const pickCard = pick ? cardMap.get(pick) : undefined;
@@ -290,7 +320,7 @@ function ReceiptCard({
       if (out) {
         onChange(out);
         // 대조가 확인되면(✅) 적요가 비어 있을 때 자동 작성
-        if (out.matchStatus === "matched" && !out.memo && !out.submissionId) {
+        if (out.matchStatus === "matched" && !out.memo && !locked) {
           setBusy("적요 작성");
           const m = await api<{ receipt: Receipt }>(`/api/receipts/${r.id}/memo`, { method: "POST" });
           onChange(m.receipt);
@@ -314,16 +344,21 @@ function ReceiptCard({
     run("적요 작성", () => api<{ receipt: Receipt }>(`/api/receipts/${r.id}/memo`, { method: "POST" }).then((x) => x.receipt));
   const saveMemo = (v: string) => (v !== r.memo ? run("적요 저장", () => patch({ memo: v })) : undefined);
 
+  // 결재 상신: 확인 → 적요 저장 → 결재선 지정 창 → 상신
+  const [picking, setPicking] = useState(false);
   const submit = () =>
-    run("상신", async () => {
+    run("상신 준비", async () => {
       if (r.matchStatus !== "matched" && !confirm("카드 내역과 대조가 확인되지 않은 건입니다. 그래도 결재 상신할까요?")) return;
-      if (memo !== r.memo) await patch({ memo });
-      const { submission } = await api<{ submission: { id: string } }>("/api/submissions", {
-        method: "POST",
-        json: { receiptId: r.id },
-      });
-      router.push(`/submissions/${submission.id}`);
+      if (memo !== r.memo) onChange(await patch({ memo }));
+      setPicking(true);
     });
+  const submitWithLine = async (line: LineSelection) => {
+    const { submission } = await api<{ submission: { id: string } }>("/api/submissions", {
+      method: "POST",
+      json: { receiptId: r.id, line },
+    });
+    router.push(`/submissions/${submission.id}`);
+  };
 
   const del = () =>
     run("삭제", async () => {
@@ -357,19 +392,26 @@ function ReceiptCard({
       <div className="row" style={{ marginBottom: 12 }}>
         <StatusBadge status={r.matchStatus} />
         <strong>{r.fileName}</strong>
-        {locked && (
-          <Link href={`/submissions/${r.submissionId}`} className="badge done">
-            상신 완료 →
+        {submission && (
+          <Link href={`/submissions/${submission.id}`} className={`badge ${rejected ? "rejected" : "done"}`}>
+            {submission.docNo} {APPROVAL_STATE_LABEL[approvalState(submission)]} →
           </Link>
         )}
         <span className="spacer" />
         {busy && <span className="muted small">{busy} 중…</span>}
-        {!locked && (
+        {!r.submissionId && (
           <button className="btn sm ghost danger" onClick={del} disabled={!!busy}>
             삭제
           </button>
         )}
       </div>
+      {rejectStep && (
+        <div className="alert info">
+          <strong>반려됨</strong> · {signerLabel(rejectStep)} · {signDate(rejectStep.signedAt)}
+          <div>사유: {rejectStep.comment}</div>
+          <div className="small">사유를 확인해 내용을 고친 뒤 아래 <strong>재상신</strong>을 누르세요. 새 상신번호로 올라갑니다.</div>
+        </div>
+      )}
 
       <div className="rc">
         <div>
@@ -533,10 +575,13 @@ function ReceiptCard({
           {!locked && (
             <div className="row">
               <span className="spacer" />
-              <button className="btn primary" onClick={submit} disabled={!!busy || !memo.trim() || dirty}>
-                결재 상신
+              <button className="btn primary" onClick={submit} disabled={!!busy || !memo.trim() || dirty || !drafter}>
+                {rejected ? "재상신" : "결재 상신"}
               </button>
             </div>
+          )}
+          {picking && drafter && (
+            <ApprovalLinePicker drafter={drafter} onSubmit={submitWithLine} onClose={() => setPicking(false)} />
           )}
         </div>
       </div>

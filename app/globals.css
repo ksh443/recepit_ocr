@@ -67,6 +67,8 @@ p { margin: 0 0 8px; }
 .role-switch button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 .role-switch button.on.sup { background: var(--stamp); color: #fff; }
 
+.account-select { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.account-select select { font-size: 13px; padding: 5px 8px; border-color: #fca5a5; }
 .demo-banner {
   background: #fff1f1; color: var(--stamp); text-align: center; font-size: 13px; padding: 6px 16px; border-bottom: 1px solid #fecaca;
 }
@@ -111,6 +113,10 @@ label.field > input, label.field > select { color: var(--text); font-size: 15px;
 .badge.matched, .badge.approved { background: var(--ok-bg); color: var(--ok); }
 .badge.amount_mismatch, .badge.date_mismatch, .badge.no_card { background: var(--warn-bg); color: var(--warn); }
 .badge.no_receipt, .badge.pending { background: var(--wait-bg); color: var(--wait); }
+.badge.rejected, .badge.approval-rejected { background: #eff6ff; color: #1d4ed8; }
+.badge.approval-requested { background: #f5f3ff; color: #6d28d9; }
+.badge.approval-reviewing { background: var(--warn-bg); color: var(--warn); }
+.badge.approval-done { background: var(--ok-bg); color: var(--ok); }
 .badge.need { background: #fef2f2; color: var(--danger); }
 .badge.done { background: var(--primary-weak); color: var(--primary); }
 
@@ -168,15 +174,34 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
 .sign-table { border-collapse: collapse; margin-left: auto; }
 .sign-table th, .sign-table td { border: 1px solid #9ca3af; text-align: center; }
 .sign-table th { background: #f3f4f6; font-size: 13px; padding: 4px 10px; font-weight: 600; }
-.sign-table td { width: 104px; height: 92px; vertical-align: middle; padding: 4px; }
+.sign-table td { width: 104px; height: 104px; vertical-align: middle; padding: 6px 4px; line-height: 1.2; }
 .sign-name { font-size: 12px; color: var(--muted); }
+.sign-person { font-weight: 700; font-size: 13px; white-space: nowrap; }
+.sign-table td.sign-caption { height: auto; font-size: 12px; padding: 3px 4px; white-space: nowrap; }
+.sign-table.compact td { width: auto; height: auto; padding: 6px 10px; white-space: nowrap; }
+
+/* ---------- 결재선 지정 창 ---------- */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 60; display: grid; place-items: center; padding: 16px; }
+.modal { background: var(--surface); border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); width: min(560px, 100%); max-height: calc(100vh - 32px); overflow: auto; padding: 20px; }
+.line-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+.line-grid .field { gap: 6px; }
+.line-fixed { color: var(--text); font-size: 15px; font-weight: 600; padding: 7px 10px; background: var(--bg); border-radius: 8px; }
+@media (max-width: 520px) { .line-grid { grid-template-columns: 1fr; } }
+.sign-preview { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; overflow-x: auto; }
+.org-table select, .org-table input[type="text"], .org-table input:not([type]) { font-size: 14px; padding: 4px 8px; }
 .stamp {
   display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
-  width: 80px; height: 80px; border: 3px solid var(--stamp); border-radius: 50%; color: var(--stamp);
+  width: 72px; height: 72px; border: 3px solid var(--stamp); border-radius: 50%; color: var(--stamp);
   font-weight: 800; transform: rotate(-12deg); line-height: 1.15; text-align: center;
-  font-size: 13px; animation: stamp-in 0.35s ease-out;
+  font-size: 11px; animation: stamp-in 0.35s ease-out; white-space: nowrap; overflow: hidden;
 }
-.stamp .stamp-mark { font-size: 15px; letter-spacing: 2px; }
+.stamp.reject { border-color: #1d4ed8; color: #1d4ed8; }
+.stamp .stamp-mark { font-size: 13px; letter-spacing: 2px; }
+.stamp .stamp-person { font-size: 10px; letter-spacing: -0.3px; margin: 1px 0; }
+.sign-table td.sign-cell { position: relative; }
+.proxy-mark { position: absolute; top: 3px; left: 5px; font-size: 14px; font-weight: 800; color: var(--stamp); }
+.stamp .stamp-date { font-size: 9px; }
+.stamp .stamp-proxy { font-size: 11px; }
 .stamp .stamp-date { font-size: 10px; font-weight: 700; }
 @keyframes stamp-in { from { transform: rotate(-12deg) scale(2); opacity: 0; } to { transform: rotate(-12deg) scale(1); opacity: 1; } }
 .doc-table { width: 100%; border-collapse: collapse; font-size: 15px; }

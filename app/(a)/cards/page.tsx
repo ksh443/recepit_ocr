@@ -6,9 +6,14 @@ import { api, errMsg } from "@/components/api";
 import { DateRange, StatusBadge } from "@/components/ui";
 import { decodeCsvBytes, parseCardCsv } from "@/lib/csv";
 import { fmtAmount, thisMonthRange } from "@/lib/format";
-import { STATUS_LABEL, type CardStatus, type CardTxn } from "@/lib/types";
+import { APPROVAL_STATE_LABEL, STATUS_LABEL, type ApprovalState, type CardStatus, type CardTxn } from "@/lib/types";
 
-type Row = CardTxn & { status: CardStatus; receiptId: string | null };
+type Row = CardTxn & {
+  status: CardStatus;
+  receiptId: string | null;
+  approval: ApprovalState | null;
+  submissionId: string | null;
+};
 interface CardsRes {
   cards: Row[];
   lastFetchedAt: string | null;
@@ -198,6 +203,18 @@ export default function CardsPage() {
                       </Link>
                     ) : (
                       <StatusBadge status={c.status} />
+                    )}
+                    {/* 영수증이 상신됐으면 결재 상태도 함께. 반려는 영수증 처리로 가서 재상신 */}
+                    {c.approval && (
+                      <Link
+                        href={c.approval === "rejected" ? `/receipts#r-${c.receiptId}` : `/submissions/${c.submissionId}`}
+                        className={`badge approval-${c.approval}`}
+                        style={{ marginLeft: 4 }}
+                        title={c.approval === "rejected" ? "눌러서 반려 사유 확인 후 재상신" : "결재서 보기"}
+                      >
+                        {APPROVAL_STATE_LABEL[c.approval]}
+                        {c.approval === "rejected" ? " · 재상신 →" : ""}
+                      </Link>
                     )}
                   </td>
                 </tr>

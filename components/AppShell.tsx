@@ -1,92 +1,95 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import { api } from "./api";
+import { sortOrg } from "@/lib/org";
+import { personLabel, type OrgMember } from "@/lib/types";
 
-export type Role = "staff" | "supervisor";
+/** "계정 선택"한 사람 (로그인 대신). 누구든 영수증을 올려 상신하고, 결재선에 있으면 검토·결재한다 */
+const ActorCtx = createContext<OrgMember | null>(null);
+export const useActor = () => useContext(ActorCtx);
 
-const RoleCtx = createContext<Role>("staff");
-export const useRole = () => useContext(RoleCtx);
-
-const STAFF_NAV = [
+const NAV = [
   { href: "/cards", label: "① 카드 사용내역" },
   { href: "/receipts", label: "② 영수증 처리" },
-  { href: "/submissions", label: "③ 상신 목록" },
+  { href: "/submissions", label: "③ 결재 현황" },
   { href: "/settings", label: "설정" },
 ];
-const SUP_NAV = [{ href: "/submissions", label: "상신 목록" }];
+
+interface Env {
+  storage: string;
+  ai: string | null;
+  settings: { orgChart: OrgMember[]; defaultDrafterId: string | null };
+}
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [role, setRole] = useState<Role>("staff");
-  const [env, setEnv] = useState<{ storage: string; ai: string | null } | null>(null);
+  const [env, setEnv] = useState<Env | null>(null);
+  const [actorId, setActorId] = useState<string | null>(null);
 
   useEffect(() => {
     try {
-      if (localStorage.getItem("role") === "supervisor") setRole("supervisor");
+      setActorId(localStorage.getItem("actorId"));
     } catch {
       /* 저장소 사용 불가 */
     }
-    api<{ storage: string; ai: string | null }>("/api/settings").then(setEnv).catch(() => undefined);
+    api<Env>("/api/settings").then(setEnv).catch(() => undefined);
   }, []);
 
-  // 상급자 보기에서는 상신 목록·문서만 보인다
-  useEffect(() => {
-    if (role === "supervisor" && !pathname.startsWith("/submissions")) router.replace("/submissions");
-  }, [role, pathname, router]);
-
-  const switchRole = (r: Role) => {
-    setRole(r);
+  const org = env ? sortOrg(env.settings.orgChart) : [];
+  // 고른 계정이 조직도에 없으면 기본 담당자
+  const actor =
+    org.find((m) => m.id === actorId) ?? org.find((m) => m.id === env?.settings.defaultDrafterId) ?? org[0] ?? null;
+  const chooseActor = (id: string) => {
+    setActorId(id);
     try {
-      localStorage.setItem("role", r);
+      localStorage.setItem("actorId", id);
     } catch {
       /* 무시 */
     }
   };
 
-  const nav = role === "supervisor" ? SUP_NAV : STAFF_NAV;
-
   return (
-    <RoleCtx.Provider value={role}>
+    <ActorCtx.Provider value={actor}>
       <header className="topbar">
         <div className="topbar-inner">
-          <Link href={role === "supervisor" ? "/submissions" : "/cards"} className="brand">
+          <Link href="/cards" className="brand">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icons/icon-192.png" alt="" />
             <span className="hide-sm">영수증 결재 상신</span>
           </Link>
           <nav className="nav">
-            {nav.map((n) => (
+            {NAV.map((n) => (
               <Link key={n.href} href={n.href} className={pathname.startsWith(n.href) ? "active" : ""}>
                 {n.label}
               </Link>
             ))}
           </nav>
-          <div className="role-switch" role="group" aria-label="보기 전환">
-            <button className={role === "staff" ? "on" : ""} onClick={() => switchRole("staff")}>
-              담당자 보기
-            </button>
-            <button className={role === "supervisor" ? "on sup" : ""} onClick={() => switchRole("supervisor")}>
-              상급자 보기
-            </button>
-          </div>
+          {org.length > 0 && (
+            <label className="account-select">
+              <span>계정 선택</span>
+              <select value={actor?.id ?? ""} onChange={(e) => chooseActor(e.target.value)}>
+                {org.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {personLabel(m)}
+                    {m.duty ? ` (${m.duty})` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
       </header>
-      {role === "supervisor" && (
-        <div className="demo-banner">
-          시연 기능: 로그인이 없어 본인 확인 없이 승인됩니다. 실제 결재 권한 확인은 결재기능 포함 버전에서 다룹니다.
-        </div>
-      )}
-      {env && role === "staff" && (env.storage === "local" || !env.ai) && (
+      {env && (env.storage === "local" || !env.ai) && (
         <div className="env-banner">
           {env.storage === "local" && "로컬 개발 모드: 데이터가 .data/ 폴더에 저장됩니다(Supabase 미연결). "}
           {!env.ai && "AI API 키(GEMINI_API_KEY 또는 ANTHROPIC_API_KEY)가 없어 OCR·적요 자동 작성이 동작하지 않습니다."}
         </div>
       )}
+      <div className="demo-banner">시연용: 로그인 대신 &quot;계정 선택&quot;으로 사람을 고르며 본인 확인은 하지 않습니다.</div>
       <main className="page">{children}</main>
-    </RoleCtx.Provider>
+    </ActorCtx.Provider>
   );
 }
